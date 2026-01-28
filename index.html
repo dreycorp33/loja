@@ -396,6 +396,13 @@
     </div>
   </div>
 
+  <div class="login-overlay hidden" id="lock-overlay">
+    <div class="card" style="width: min(520px, 90vw); text-align: center;">
+      <h2>Teste expirado</h2>
+      <p class="muted">O período de teste terminou. Para reativar, inicie um novo teste em Configurações.</p>
+    </div>
+  </div>
+
   <div class="modal hidden" id="product-modal">
     <div class="modal-content">
       <div class="flex-between">
@@ -1028,6 +1035,8 @@
           themeSecondary: "#0ea5e9",
           appTitle: "DR Soluções - PDV & Gestão",
           sheetEndpoint: "",
+          trialActive: false,
+          trialEndsAt: null,
         });
       },
     };
@@ -1814,6 +1823,25 @@
               </form>
             </div>
             <div class="card">
+              <h3>Teste do aplicativo</h3>
+              <p class="muted">Defina um tempo de teste. Após expirar, todas as funções serão bloqueadas.</p>
+              <form id="trial-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Senha de teste</label><input name="trialPassword" type="password" /></div>
+                <div class="field"><label>Tempo de teste</label>
+                  <select name="trialDuration">
+                    <option value="15">15 minutos</option>
+                    <option value="30">30 minutos</option>
+                    <option value="60">1 hora</option>
+                    <option value="120">2 horas</option>
+                    <option value="240">4 horas</option>
+                  </select>
+                </div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn warning" type="submit">Iniciar teste</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
               <h3>Integração Google Sheets</h3>
               <p class="muted">Use uma URL de Web App do Google Apps Script para sincronizar dados.</p>
               <div class="field">
@@ -1826,8 +1854,8 @@
               </div>
               <div class="card" style="box-shadow:none; border:1px solid #e2e8f0; margin-top: 12px;">
                 <strong>Modelo de abas</strong>
-                <div class="muted">products | customers | sales | cash | movements</div>
-                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,variants_json,unit,supplier,status\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason</pre>
+                <div class="muted">products | customers | sales | cash | movements | users | settings</div>
+                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
               </div>
             </div>
           `;
@@ -1836,6 +1864,7 @@
           container.querySelector("#backup-export").addEventListener("click", Backup.exportAll);
           container.querySelector("#backup-import").addEventListener("click", Backup.importAll);
           container.querySelector("#account-form").addEventListener("submit", Auth.updateCredentials);
+          container.querySelector("#trial-form").addEventListener("submit", Trial.start);
           container.querySelector("#sheet-export").addEventListener("click", Sheets.exportAll);
           container.querySelector("#sheet-import").addEventListener("click", Sheets.importAll);
           container.querySelector("#sheet-endpoint").addEventListener("change", (event) => {
@@ -2034,6 +2063,43 @@
       },
     };
 
+    const Trial = {
+      password: "dr397210",
+      isLocked() {
+        return state.settings.trialActive && state.settings.trialEndsAt && Date.now() > state.settings.trialEndsAt;
+      },
+      async start(event) {
+        event.preventDefault();
+        const form = event.target;
+        const password = form.trialPassword.value;
+        const minutes = parseInt(form.trialDuration.value, 10);
+        if (password !== Trial.password) {
+          UI.toast("Senha de teste inválida.");
+          return;
+        }
+        const endsAt = Date.now() + minutes * 60 * 1000;
+        state.settings.trialActive = true;
+        state.settings.trialEndsAt = endsAt;
+        await db.put("settings", { ...state.settings });
+        Trial.unlock();
+        UI.toast("Teste iniciado.");
+        form.trialPassword.value = "";
+      },
+      lock() {
+        document.getElementById("lock-overlay").classList.remove("hidden");
+      },
+      unlock() {
+        document.getElementById("lock-overlay").classList.add("hidden");
+      },
+      check() {
+        if (Trial.isLocked()) {
+          Trial.lock();
+        } else {
+          Trial.unlock();
+        }
+      },
+    };
+
     const Sheets = {
       columns: {
         products: [
@@ -2110,6 +2176,8 @@
           "themeSecondary",
           "appTitle",
           "sheetEndpoint",
+          "trialActive",
+          "trialEndsAt",
         ],
       },
       serialize(store, item) {
@@ -2164,6 +2232,8 @@
             themeSecondary: item.themeSecondary,
             appTitle: item.appTitle,
             sheetEndpoint: item.sheetEndpoint,
+            trialActive: item.trialActive,
+            trialEndsAt: item.trialEndsAt,
           };
         }
         return { ...item };
@@ -2377,6 +2447,8 @@
       initNavigation();
       document.body.classList.toggle("touch", state.settings.touchMode);
       Theme.apply();
+      Trial.check();
+      setInterval(Trial.check, 1000);
       Router.register("dashboard", Views.dashboard);
       Router.register("pdv", Views.pdv);
       Router.register("produtos", Views.produtos);
@@ -2385,7 +2457,11 @@
       Router.register("caixa", Views.caixa);
       Router.register("relatorios", Views.relatorios);
       Router.register("config", Views.config);
-      Router.navigate("dashboard");
+      if (!Trial.isLocked()) {
+        Router.navigate("dashboard");
+      } else {
+        Trial.lock();
+      }
 
       document.addEventListener("keydown", (event) => {
         if (state.currentView !== "pdv") return;

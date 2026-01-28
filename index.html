@@ -33,6 +33,19 @@
       background: #f8fafc;
       color: var(--text);
       min-height: 100vh;
+      position: relative;
+    }
+
+    body.watermark::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: var(--watermark-url);
+      background-repeat: repeat;
+      background-size: 180px auto;
+      opacity: var(--watermark-opacity, 0.08);
+      pointer-events: none;
+      z-index: 0;
     }
 
     .app {
@@ -1024,6 +1037,9 @@
           storeName: "DR Soluções",
           storeCnpj: "",
           whatsapp: "35991617669",
+          storeLogo: "",
+          watermarkEnabled: false,
+          watermarkOpacity: 0.08,
           receiptFooter: "Obrigado por comprar com a DR Soluções!",
           receiptNote: "Volte sempre!",
           receiptShowDeveloper: true,
@@ -1783,6 +1799,17 @@
                   <small class="muted">Este CNPJ será impresso no cupom.</small>
                 </div>
                 <div class="field"><label>WhatsApp</label><input name="whatsapp" value="${settings.whatsapp || ""}" /></div>
+                <div class="field">
+                  <label>Logo (para marca d'água)</label>
+                  <input name="storeLogo" type="file" accept="image/*" />
+                </div>
+                <div class="field"><label>Marca d'água</label>
+                  <select name="watermarkEnabled">
+                    <option value="false" ${settings.watermarkEnabled ? "" : "selected"}>Desativada</option>
+                    <option value="true" ${settings.watermarkEnabled ? "selected" : ""}>Ativada</option>
+                  </select>
+                </div>
+                <div class="field"><label>Opacidade da marca d'água</label><input name="watermarkOpacity" type="number" step="0.01" min="0" max="0.3" value="${settings.watermarkOpacity ?? 0.08}" /></div>
                 <div class="field"><label>Mensagem no cupom</label><input name="receiptFooter" value="${settings.receiptFooter || ""}" /></div>
                 <div class="field"><label>Mensagem extra no cupom</label><input name="receiptNote" value="${settings.receiptNote || ""}" /></div>
                 <div class="field"><label>Mostrar desenvolvedor no cupom</label>
@@ -1866,7 +1893,7 @@
               <div class="card" style="box-shadow:none; border:1px solid #e2e8f0; margin-top: 12px;">
                 <strong>Modelo de abas</strong>
                 <div class="muted">products | customers | sales | cash | movements | users | settings</div>
-                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
+                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,whatsapp,storeLogo,watermarkEnabled,watermarkOpacity,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
               </div>
             </div>
           `;
@@ -2083,6 +2110,9 @@
           storeName: form.storeName.value,
           storeCnpj: form.storeCnpj.value,
           whatsapp: form.whatsapp.value,
+          storeLogo: state.settings.storeLogo || "",
+          watermarkEnabled: form.watermarkEnabled.value === "true",
+          watermarkOpacity: Utils.parseNumber(form.watermarkOpacity.value) || 0.08,
           receiptFooter: form.receiptFooter.value,
           receiptNote: form.receiptNote.value,
           receiptShowDeveloper: form.receiptShowDeveloper.value === "true",
@@ -2096,11 +2126,16 @@
           appTitle: form.appTitle.value,
           sheetEndpoint: state.settings.sheetEndpoint || "",
         };
+        const logoFile = form.storeLogo.files[0];
+        if (logoFile) {
+          updated.storeLogo = await Utils.toBase64(logoFile);
+        }
         await db.put("settings", updated);
         state.settings = updated;
         state.touch = updated.touchMode;
         document.body.classList.toggle("touch", state.touch);
         Theme.apply();
+        Watermark.apply();
         UI.toast("Configurações salvas.");
       },
     };
@@ -2112,6 +2147,21 @@
         root.style.setProperty("--accent-2", state.settings.themeSecondary || "#0ea5e9");
         const title = document.querySelector("title");
         if (title && state.settings.appTitle) title.textContent = state.settings.appTitle;
+      },
+    };
+
+    const Watermark = {
+      apply() {
+        const enabled = state.settings.watermarkEnabled && state.settings.storeLogo;
+        if (enabled) {
+          document.body.classList.add("watermark");
+          document.documentElement.style.setProperty("--watermark-url", `url(${state.settings.storeLogo})`);
+          document.documentElement.style.setProperty("--watermark-opacity", state.settings.watermarkOpacity ?? 0.08);
+        } else {
+          document.body.classList.remove("watermark");
+          document.documentElement.style.removeProperty("--watermark-url");
+          document.documentElement.style.removeProperty("--watermark-opacity");
+        }
       },
     };
 
@@ -2227,6 +2277,9 @@
           "storeName",
           "storeCnpj",
           "whatsapp",
+          "storeLogo",
+          "watermarkEnabled",
+          "watermarkOpacity",
           "receiptFooter",
           "receiptNote",
           "receiptShowDeveloper",
@@ -2284,6 +2337,9 @@
             storeName: item.storeName,
             storeCnpj: item.storeCnpj,
             whatsapp: item.whatsapp,
+            storeLogo: item.storeLogo,
+            watermarkEnabled: item.watermarkEnabled,
+            watermarkOpacity: item.watermarkOpacity,
             receiptFooter: item.receiptFooter,
             receiptNote: item.receiptNote,
             receiptShowDeveloper: item.receiptShowDeveloper,
@@ -2512,6 +2568,7 @@
       initNavigation();
       document.body.classList.toggle("touch", state.settings.touchMode);
       Theme.apply();
+      Watermark.apply();
       Trial.check();
       setInterval(Trial.check, 1000);
       Router.register("dashboard", Views.dashboard);

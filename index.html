@@ -665,6 +665,44 @@
         const user = await db.get("users", id);
         if (user) state.user = user;
       },
+      async updateCredentials(event) {
+        event.preventDefault();
+        const form = event.target;
+        const newUsername = form.newUsername.value.trim();
+        const currentPassword = form.currentPassword.value;
+        const newPassword = form.newPassword.value;
+        const confirmPassword = form.confirmPassword.value;
+        if (!newUsername) {
+          UI.toast("Informe um usuário válido.");
+          return;
+        }
+        if (newPassword && newPassword !== confirmPassword) {
+          UI.toast("A confirmação da senha não confere.");
+          return;
+        }
+        const users = await db.getAll("users");
+        const current = users.find((u) => u.id === state.user.id);
+        if (!current || current.password !== currentPassword) {
+          UI.toast("Senha atual incorreta.");
+          return;
+        }
+        const duplicate = users.find((u) => u.username === newUsername && u.id !== current.id);
+        if (duplicate) {
+          UI.toast("Usuário já está em uso.");
+          return;
+        }
+        const updated = {
+          ...current,
+          username: newUsername,
+          password: newPassword ? newPassword : current.password,
+        };
+        await db.put("users", updated);
+        state.user = updated;
+        UI.toast("Usuário e senha atualizados.");
+        form.currentPassword.value = "";
+        form.newPassword.value = "";
+        form.confirmPassword.value = "";
+      },
       logout() {
         localStorage.removeItem("sessionUser");
         state.user = null;
@@ -1763,6 +1801,19 @@
               </div>
             </div>
             <div class="card">
+              <h3>Conta do usuário</h3>
+              <p class="muted">Troque o usuário e a senha do login atual.</p>
+              <form id="account-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Novo usuário</label><input name="newUsername" value="${state.user?.username || ""}" /></div>
+                <div class="field"><label>Senha atual</label><input name="currentPassword" type="password" /></div>
+                <div class="field"><label>Nova senha</label><input name="newPassword" type="password" /></div>
+                <div class="field"><label>Confirmar nova senha</label><input name="confirmPassword" type="password" /></div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn success" type="submit">Atualizar acesso</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
               <h3>Integração Google Sheets</h3>
               <p class="muted">Use uma URL de Web App do Google Apps Script para sincronizar dados.</p>
               <div class="field">
@@ -1784,6 +1835,7 @@
           container.querySelector("#settings-form").addEventListener("submit", Settings.save);
           container.querySelector("#backup-export").addEventListener("click", Backup.exportAll);
           container.querySelector("#backup-import").addEventListener("click", Backup.importAll);
+          container.querySelector("#account-form").addEventListener("submit", Auth.updateCredentials);
           container.querySelector("#sheet-export").addEventListener("click", Sheets.exportAll);
           container.querySelector("#sheet-import").addEventListener("click", Sheets.importAll);
           container.querySelector("#sheet-endpoint").addEventListener("change", (event) => {

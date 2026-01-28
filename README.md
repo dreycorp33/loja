@@ -136,7 +136,7 @@ sales: id,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,
 cash: id,type,date,amount,method,saleId
 movements: id,type,date,productId,quantity,userId,reason
 users: id,username,password,role,name
-settings: id,storeName,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt
+settings: id,storeName,storeCnpj,storePhone,storeEmail,storeAddress,storeCity,storeState,storeCep,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt
 ```
 
 > Observação: campos JSON (ex.: `items_json`) são armazenados como texto na planilha.

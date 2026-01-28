@@ -1,0 +1,58 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 677 >>
+stream
+BT
+/F1 12 Tf
+50 800 Td
+0 -16 Td (DR Solucoes - PDV & Gestao) Tj
+0 -16 Td (Apresentacao) Tj
+0 -16 Td () Tj
+0 -16 Td () Tj
+0 -16 Td (Modulo PDV) Tj
+0 -16 Td (- Busca rapida) Tj
+0 -16 Td (- Carrinho com descontos) Tj
+0 -16 Td (- Cupom 80mm) Tj
+0 -16 Td () Tj
+0 -16 Td (Produtos & Estoque) Tj
+0 -16 Td (- CRUD completo) Tj
+0 -16 Td (- Variacoes e estoque) Tj
+0 -16 Td (- Alertas) Tj
+0 -16 Td () Tj
+0 -16 Td (Clientes & Financeiro) Tj
+0 -16 Td (- Cadastro e historico) Tj
+0 -16 Td (- Caixa e relatorios) Tj
+0 -16 Td () Tj
+0 -16 Td (Offline & Integracoes) Tj
+0 -16 Td (- IndexedDB) Tj
+0 -16 Td (- Backup JSON) Tj
+0 -16 Td (- Google Sheets) Tj
+0 -16 Td (- Marca d'agua com logo) Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 4 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+4 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+5 0 obj
+<< /Type /Catalog /Pages 4 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000807 00000 n 
+0000000933 00000 n 
+0000000990 00000 n 
+trailer
+<< /Size 6 /Root 5 0 R >>
+startxref
+1039
+%%EOF

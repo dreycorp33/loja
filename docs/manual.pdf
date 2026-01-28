@@ -1,0 +1,61 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 1171 >>
+stream
+BT
+/F1 12 Tf
+50 800 Td
+0 -16 Td (Manual de Utilizacao - DR Solucoes) Tj
+0 -16 Td () Tj
+0 -16 Td (1. Acesso) Tj
+0 -16 Td (- Usuario inicial: admin / senha: 1234) Tj
+0 -16 Td (- Troque usuario e senha em Configuracoes > Conta do usuario) Tj
+0 -16 Td () Tj
+0 -16 Td (2. Cadastro da Loja) Tj
+0 -16 Td (- Preencha Nome da loja e CNPJ em Configuracoes > Dados da loja) Tj
+0 -16 Td (- O CNPJ aparece no cupom impresso) Tj
+0 -16 Td (- Envie a logo e ative a marca d'agua em Configuracoes > Dados da loja) Tj
+0 -16 Td () Tj
+0 -16 Td (3. PDV / Vendas) Tj
+0 -16 Td (- Busque produtos por nome, SKU ou codigo de barras) Tj
+0 -16 Td (- Finalize a venda e imprima o cupom 80mm) Tj
+0 -16 Td () Tj
+0 -16 Td (4. Produtos e Clientes) Tj
+0 -16 Td (- Cadastre produtos com variacoes e estoque) Tj
+0 -16 Td (- Cadastre clientes para historico de compras) Tj
+0 -16 Td () Tj
+0 -16 Td (5. Backup e Google Sheets) Tj
+0 -16 Td (- Exporte backup completo em Configuracoes > Backup) Tj
+0 -16 Td (- Integre com Google Sheets em Configuracoes) Tj
+0 -16 Td () Tj
+0 -16 Td (6. Modo de teste) Tj
+0 -16 Td (- Inicie o teste com a senha dr397210) Tj
+0 -16 Td (- Ao expirar, as funcoes sao bloqueadas) Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 4 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+4 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+5 0 obj
+<< /Type /Catalog /Pages 4 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000001302 00000 n 
+0000001428 00000 n 
+0000001485 00000 n 
+trailer
+<< /Size 6 /Root 5 0 R >>
+startxref
+1534
+%%EOF

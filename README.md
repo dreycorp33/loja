@@ -42,18 +42,19 @@ O app envia e recebe dados usando um **Google Apps Script** publicado como Web A
 ### Código pronto do Apps Script
 
 ```javascript
-const SHEETS = ["products", "customers", "sales", "cash", "movements"];
+const SHEETS = ["products", "customers", "sales", "cash", "movements", "users", "settings"];
 
 function doPost(e) {
   const body = JSON.parse(e.postData.contents || "{}");
   if (body.action !== "export") return json({ ok: false, error: "Invalid action" });
   const payload = body.payload || {};
+  const columns = body.columns || {};
   SHEETS.forEach((name) => {
     const sheet = getSheet(name);
     sheet.clear();
     const rows = payload[name] || [];
-    if (!rows.length) return;
-    const headers = Object.keys(rows[0]);
+    const headers = columns[name] || (rows.length ? Object.keys(rows[0]) : []);
+    if (!headers.length) return;
     sheet.appendRow(headers);
     rows.forEach((row) => {
       sheet.appendRow(headers.map((key) => stringify(row[key])));
@@ -112,11 +113,13 @@ function parseValue(value) {
 ### Modelos de abas (headers)
 
 ```
-products: id,name,sku,barcode,category,brand,price,cost,variants_json,unit,supplier,status
+products: id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt
 customers: id,name,phone,email,cpf,birthday,address,notes
 sales: id,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId
 cash: id,type,date,amount,method,saleId
 movements: id,type,date,productId,quantity,userId,reason
+users: id,username,password,role,name
+settings: id,storeName,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint
 ```
 
 > Observação: campos JSON (ex.: `items_json`) são armazenados como texto na planilha.

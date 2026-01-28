@@ -738,9 +738,9 @@
 
     const Permissions = {
       rules: {
-        operador: ["pdv"],
-        gerente: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config"],
-        admin: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config"],
+        operador: ["pdv", "manual"],
+        gerente: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config", "manual"],
+        admin: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config", "manual"],
       },
       can(view) {
         if (!state.user) return false;
@@ -1881,6 +1881,46 @@
           return container;
         },
       },
+      manual: {
+        title: "Manual",
+        subtitle: "Guia rápido de uso",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          container.innerHTML = `
+            <div class="card">
+              <h3>Guia de utilização</h3>
+              <p class="muted">Resumo das principais rotinas dentro do sistema.</p>
+              <h4>Login e usuários</h4>
+              <ul>
+                <li>Usuário inicial: <strong>admin</strong> / senha <strong>1234</strong>.</li>
+                <li>Para alterar usuário e senha, acesse <strong>Configurações &gt; Conta do usuário</strong>.</li>
+              </ul>
+              <h4>Cadastro da loja</h4>
+              <ul>
+                <li>Preencha o nome e o <strong>CNPJ</strong> em <strong>Configurações &gt; Dados da loja</strong>.</li>
+                <li>O CNPJ aparece automaticamente no cupom impresso.</li>
+              </ul>
+              <h4>PDV / Vendas</h4>
+              <ul>
+                <li>Use o campo de busca para localizar produtos por nome, SKU ou código de barras.</li>
+                <li>Finalize a venda e imprima o cupom em 80mm pelo botão <strong>Imprimir cupom</strong>.</li>
+              </ul>
+              <h4>Backup e Google Sheets</h4>
+              <ul>
+                <li>Backup completo em <strong>Configurações &gt; Backup</strong>.</li>
+                <li>Integração com Google Sheets na mesma tela (exportar/importar).</li>
+              </ul>
+              <h4>Modo teste</h4>
+              <ul>
+                <li>Em <strong>Configurações &gt; Teste do aplicativo</strong> defina o tempo de teste.</li>
+                <li>Ao expirar, o sistema bloqueia todas as funções.</li>
+              </ul>
+            </div>
+          `;
+          return container;
+        },
+      },
     };
 
     const Products = {
@@ -2449,6 +2489,7 @@
         { key: "caixa", label: "Caixa" },
         { key: "relatorios", label: "Relatórios" },
         { key: "config", label: "Configurações" },
+        { key: "manual", label: "Manual" },
       ];
       items.forEach((item) => {
         if (!Permissions.can(item.key)) return;
@@ -2477,6 +2518,7 @@
       Router.register("caixa", Views.caixa);
       Router.register("relatorios", Views.relatorios);
       Router.register("config", Views.config);
+      Router.register("manual", Views.manual);
       if (!Trial.isLocked()) {
         Router.navigate("dashboard");
       } else {

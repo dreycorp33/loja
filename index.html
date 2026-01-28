@@ -167,6 +167,15 @@
     .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
     .grid-4 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 
+    body.no-auto-fit .content {
+      max-width: none;
+      margin: 0;
+    }
+
+    body.no-auto-fit .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body.no-auto-fit .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    body.no-auto-fit .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
     .field {
       display: flex;
       flex-direction: column;
@@ -1051,6 +1060,7 @@
           storeLogo: "",
           watermarkEnabled: false,
           watermarkOpacity: 0.08,
+          autoFitEnabled: true,
           receiptFooter: "Obrigado por comprar com a DR Soluções!",
           receiptNote: "Volte sempre!",
           receiptShowDeveloper: true,
@@ -1821,6 +1831,12 @@
                   </select>
                 </div>
                 <div class="field"><label>Opacidade da marca d'água</label><input name="watermarkOpacity" type="number" step="0.01" min="0" max="0.3" value="${settings.watermarkOpacity ?? 0.08}" /></div>
+                <div class="field"><label>Autoajuste de tela</label>
+                  <select name="autoFitEnabled">
+                    <option value="true" ${settings.autoFitEnabled !== false ? "selected" : ""}>Ativado</option>
+                    <option value="false" ${settings.autoFitEnabled === false ? "selected" : ""}>Desativado</option>
+                  </select>
+                </div>
                 <div class="field"><label>Mensagem no cupom</label><input name="receiptFooter" value="${settings.receiptFooter || ""}" /></div>
                 <div class="field"><label>Mensagem extra no cupom</label><input name="receiptNote" value="${settings.receiptNote || ""}" /></div>
                 <div class="field"><label>Mostrar desenvolvedor no cupom</label>
@@ -1904,7 +1920,7 @@
               <div class="card" style="box-shadow:none; border:1px solid #e2e8f0; margin-top: 12px;">
                 <strong>Modelo de abas</strong>
                 <div class="muted">products | customers | sales | cash | movements | users | settings</div>
-                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,whatsapp,storeLogo,watermarkEnabled,watermarkOpacity,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
+                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,whatsapp,storeLogo,watermarkEnabled,watermarkOpacity,autoFitEnabled,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
               </div>
             </div>
           `;
@@ -2125,6 +2141,7 @@
           storeLogo: state.settings.storeLogo || "",
           watermarkEnabled: form.watermarkEnabled.value === "true",
           watermarkOpacity: Utils.parseNumber(form.watermarkOpacity.value) || 0.08,
+          autoFitEnabled: form.autoFitEnabled.value === "true",
           receiptFooter: form.receiptFooter.value,
           receiptNote: form.receiptNote.value,
           receiptShowDeveloper: form.receiptShowDeveloper.value === "true",
@@ -2148,8 +2165,15 @@
         document.body.classList.toggle("touch", state.touch);
         Theme.apply();
         Watermark.apply();
+        Layout.apply();
         Preferences.save();
         UI.toast("Configurações salvas.");
+      },
+    };
+
+    const Layout = {
+      apply() {
+        document.body.classList.toggle("no-auto-fit", state.settings.autoFitEnabled === false);
       },
     };
 
@@ -2163,6 +2187,7 @@
           appTitle: state.settings.appTitle,
           watermarkEnabled: state.settings.watermarkEnabled,
           watermarkOpacity: state.settings.watermarkOpacity,
+          autoFitEnabled: state.settings.autoFitEnabled,
         };
         localStorage.setItem(this.key, JSON.stringify(prefs));
       },
@@ -2320,6 +2345,7 @@
           "storeLogo",
           "watermarkEnabled",
           "watermarkOpacity",
+          "autoFitEnabled",
           "receiptFooter",
           "receiptNote",
           "receiptShowDeveloper",
@@ -2380,6 +2406,7 @@
             storeLogo: item.storeLogo,
             watermarkEnabled: item.watermarkEnabled,
             watermarkOpacity: item.watermarkOpacity,
+            autoFitEnabled: item.autoFitEnabled,
             receiptFooter: item.receiptFooter,
             receiptNote: item.receiptNote,
             receiptShowDeveloper: item.receiptShowDeveloper,
@@ -2609,6 +2636,7 @@
       document.body.classList.toggle("touch", state.settings.touchMode);
       Theme.apply();
       Watermark.apply();
+      Layout.apply();
       Trial.check();
       setInterval(Trial.check, 1000);
       Router.register("dashboard", Views.dashboard);

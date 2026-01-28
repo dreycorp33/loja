@@ -1603,6 +1603,9 @@
           });
           container.querySelector("#customer-new").addEventListener("click", () => Customers.showForm());
           container.querySelector("#customer-export").addEventListener("click", () => Customers.exportJSON());
+          container.querySelector("#customer-cancel").addEventListener("click", () => {
+            document.getElementById("customer-form-card").style.display = "none";
+          });
           return container;
         },
       },

@@ -37,6 +37,15 @@ WebApp offline-first para loja de roupas, rodando apenas com `index.html` (sem b
    - **Build command**: (vazio)
    - **Publish directory**: `.`
 
+### Pacote pronto para Netlify
+Se quiser gerar um ZIP para enviar via **Drag & Drop**, execute:
+
+```
+./scripts/package_netlify.sh
+```
+
+O arquivo será gerado em `dist/dr-solucoes-netlify.zip`.
+
 ## Backup e restauração
 
 * Vá em **Configurações > Backup**.

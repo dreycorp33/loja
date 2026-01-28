@@ -33,6 +33,19 @@
       background: #f8fafc;
       color: var(--text);
       min-height: 100vh;
+      position: relative;
+    }
+
+    body.watermark::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: var(--watermark-url);
+      background-repeat: repeat;
+      background-size: 180px auto;
+      opacity: var(--watermark-opacity, 0.08);
+      pointer-events: none;
+      z-index: 0;
     }
 
     .app {
@@ -738,9 +751,9 @@
 
     const Permissions = {
       rules: {
-        operador: ["pdv"],
-        gerente: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config"],
-        admin: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config"],
+        operador: ["pdv", "manual"],
+        gerente: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config", "manual"],
+        admin: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config", "manual"],
       },
       can(view) {
         if (!state.user) return false;
@@ -1022,7 +1035,11 @@
         await db.put("settings", {
           id: "settings",
           storeName: "DR Soluções",
+          storeCnpj: "",
           whatsapp: "35991617669",
+          storeLogo: "",
+          watermarkEnabled: false,
+          watermarkOpacity: 0.08,
           receiptFooter: "Obrigado por comprar com a DR Soluções!",
           receiptNote: "Volte sempre!",
           receiptShowDeveloper: true,
@@ -1241,6 +1258,7 @@
         const sale = state.lastReceipt;
         const storeName = state.settings.storeName || "DR Soluções";
         const footer = state.settings.receiptFooter || "Obrigado pela preferência";
+        const storeMeta = state.settings.storeCnpj ? `CNPJ: ${state.settings.storeCnpj}` : "";
         const itemsHtml = sale.items
           .map((item) => `
             <div>
@@ -1255,6 +1273,7 @@
         const receiptNote = state.settings.receiptNote ? `<div style="text-align:center; margin-top: 6px;">${state.settings.receiptNote}</div>` : "";
         document.getElementById("print-area").innerHTML = `
           <h2>${storeName}</h2>
+          ${storeMeta ? `<div style="text-align:center; margin-bottom: 6px;">${storeMeta}</div>` : ""}
           <div class="line"><span>Venda:</span><span>${sale.id.slice(0, 6)}</span></div>
           <div class="line"><span>Data:</span><span>${Utils.formatDate(new Date(sale.date))}</span></div>
           <hr />
@@ -1600,6 +1619,9 @@
           });
           container.querySelector("#customer-new").addEventListener("click", () => Customers.showForm());
           container.querySelector("#customer-export").addEventListener("click", () => Customers.exportJSON());
+          container.querySelector("#customer-cancel").addEventListener("click", () => {
+            document.getElementById("customer-form-card").style.display = "none";
+          });
           return container;
         },
       },
@@ -1771,7 +1793,23 @@
               <h3>Dados da loja</h3>
               <form id="settings-form" class="grid grid-2" style="margin-top: 12px;">
                 <div class="field"><label>Nome da loja</label><input name="storeName" value="${settings.storeName || ""}" /></div>
+                <div class="field">
+                  <label>CNPJ</label>
+                  <input name="storeCnpj" placeholder="00.000.000/0000-00" value="${settings.storeCnpj || ""}" />
+                  <small class="muted">Este CNPJ será impresso no cupom.</small>
+                </div>
                 <div class="field"><label>WhatsApp</label><input name="whatsapp" value="${settings.whatsapp || ""}" /></div>
+                <div class="field">
+                  <label>Logo (para marca d'água)</label>
+                  <input name="storeLogo" type="file" accept="image/*" />
+                </div>
+                <div class="field"><label>Marca d'água</label>
+                  <select name="watermarkEnabled">
+                    <option value="false" ${settings.watermarkEnabled ? "" : "selected"}>Desativada</option>
+                    <option value="true" ${settings.watermarkEnabled ? "selected" : ""}>Ativada</option>
+                  </select>
+                </div>
+                <div class="field"><label>Opacidade da marca d'água</label><input name="watermarkOpacity" type="number" step="0.01" min="0" max="0.3" value="${settings.watermarkOpacity ?? 0.08}" /></div>
                 <div class="field"><label>Mensagem no cupom</label><input name="receiptFooter" value="${settings.receiptFooter || ""}" /></div>
                 <div class="field"><label>Mensagem extra no cupom</label><input name="receiptNote" value="${settings.receiptNote || ""}" /></div>
                 <div class="field"><label>Mostrar desenvolvedor no cupom</label>
@@ -1855,7 +1893,7 @@
               <div class="card" style="box-shadow:none; border:1px solid #e2e8f0; margin-top: 12px;">
                 <strong>Modelo de abas</strong>
                 <div class="muted">products | customers | sales | cash | movements | users | settings</div>
-                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
+                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,whatsapp,storeLogo,watermarkEnabled,watermarkOpacity,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
               </div>
             </div>
           `;
@@ -1871,6 +1909,47 @@
             state.settings.sheetEndpoint = event.target.value;
             db.put("settings", { ...state.settings, sheetEndpoint: event.target.value });
           });
+          return container;
+        },
+      },
+      manual: {
+        title: "Manual",
+        subtitle: "Guia rápido de uso",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          container.innerHTML = `
+            <div class="card">
+              <h3>Guia de utilização</h3>
+              <p class="muted">Resumo das principais rotinas dentro do sistema.</p>
+              <h4>Login e usuários</h4>
+              <ul>
+                <li>Usuário inicial: <strong>admin</strong> / senha <strong>1234</strong>.</li>
+                <li>Para alterar usuário e senha, acesse <strong>Configurações &gt; Conta do usuário</strong>.</li>
+              </ul>
+              <h4>Cadastro da loja</h4>
+              <ul>
+                <li>Preencha o nome e o <strong>CNPJ</strong> em <strong>Configurações &gt; Dados da loja</strong>.</li>
+                <li>O CNPJ aparece automaticamente no cupom impresso.</li>
+                <li>Envie a logo e ative a <strong>marca d'água</strong> em <strong>Configurações &gt; Dados da loja</strong>.</li>
+              </ul>
+              <h4>PDV / Vendas</h4>
+              <ul>
+                <li>Use o campo de busca para localizar produtos por nome, SKU ou código de barras.</li>
+                <li>Finalize a venda e imprima o cupom em 80mm pelo botão <strong>Imprimir cupom</strong>.</li>
+              </ul>
+              <h4>Backup e Google Sheets</h4>
+              <ul>
+                <li>Backup completo em <strong>Configurações &gt; Backup</strong>.</li>
+                <li>Integração com Google Sheets na mesma tela (exportar/importar).</li>
+              </ul>
+              <h4>Modo teste</h4>
+              <ul>
+                <li>Em <strong>Configurações &gt; Teste do aplicativo</strong> defina o tempo de teste.</li>
+                <li>Ao expirar, o sistema bloqueia todas as funções.</li>
+              </ul>
+            </div>
+          `;
           return container;
         },
       },
@@ -2030,7 +2109,11 @@
         const updated = {
           id: "settings",
           storeName: form.storeName.value,
+          storeCnpj: form.storeCnpj.value,
           whatsapp: form.whatsapp.value,
+          storeLogo: state.settings.storeLogo || "",
+          watermarkEnabled: form.watermarkEnabled.value === "true",
+          watermarkOpacity: Utils.parseNumber(form.watermarkOpacity.value) || 0.08,
           receiptFooter: form.receiptFooter.value,
           receiptNote: form.receiptNote.value,
           receiptShowDeveloper: form.receiptShowDeveloper.value === "true",
@@ -2044,11 +2127,16 @@
           appTitle: form.appTitle.value,
           sheetEndpoint: state.settings.sheetEndpoint || "",
         };
+        const logoFile = form.storeLogo.files[0];
+        if (logoFile) {
+          updated.storeLogo = await Utils.toBase64(logoFile);
+        }
         await db.put("settings", updated);
         state.settings = updated;
         state.touch = updated.touchMode;
         document.body.classList.toggle("touch", state.touch);
         Theme.apply();
+        Watermark.apply();
         UI.toast("Configurações salvas.");
       },
     };
@@ -2063,10 +2151,35 @@
       },
     };
 
+    const Watermark = {
+      apply() {
+        const enabled = state.settings.watermarkEnabled && state.settings.storeLogo;
+        if (enabled) {
+          document.body.classList.add("watermark");
+          document.documentElement.style.setProperty("--watermark-url", `url(${state.settings.storeLogo})`);
+          document.documentElement.style.setProperty("--watermark-opacity", state.settings.watermarkOpacity ?? 0.08);
+        } else {
+          document.body.classList.remove("watermark");
+          document.documentElement.style.removeProperty("--watermark-url");
+          document.documentElement.style.removeProperty("--watermark-opacity");
+        }
+      },
+    };
+
     const Trial = {
       password: "dr397210",
       isLocked() {
         return state.settings.trialActive && state.settings.trialEndsAt && Date.now() > state.settings.trialEndsAt;
+      },
+      formatRemaining(ms) {
+        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        if (hours > 0) {
+          return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
       },
       async start(event) {
         event.preventDefault();
@@ -2163,7 +2276,11 @@
         settings: [
           "id",
           "storeName",
+          "storeCnpj",
           "whatsapp",
+          "storeLogo",
+          "watermarkEnabled",
+          "watermarkOpacity",
           "receiptFooter",
           "receiptNote",
           "receiptShowDeveloper",
@@ -2219,7 +2336,11 @@
           return {
             id: item.id,
             storeName: item.storeName,
+            storeCnpj: item.storeCnpj,
             whatsapp: item.whatsapp,
+            storeLogo: item.storeLogo,
+            watermarkEnabled: item.watermarkEnabled,
+            watermarkOpacity: item.watermarkOpacity,
             receiptFooter: item.receiptFooter,
             receiptNote: item.receiptNote,
             receiptShowDeveloper: item.receiptShowDeveloper,
@@ -2429,6 +2550,7 @@
         { key: "caixa", label: "Caixa" },
         { key: "relatorios", label: "Relatórios" },
         { key: "config", label: "Configurações" },
+        { key: "manual", label: "Manual" },
       ];
       items.forEach((item) => {
         if (!Permissions.can(item.key)) return;
@@ -2447,6 +2569,7 @@
       initNavigation();
       document.body.classList.toggle("touch", state.settings.touchMode);
       Theme.apply();
+      Watermark.apply();
       Trial.check();
       setInterval(Trial.check, 1000);
       Router.register("dashboard", Views.dashboard);
@@ -2457,6 +2580,7 @@
       Router.register("caixa", Views.caixa);
       Router.register("relatorios", Views.relatorios);
       Router.register("config", Views.config);
+      Router.register("manual", Views.manual);
       if (!Trial.isLocked()) {
         Router.navigate("dashboard");
       } else {

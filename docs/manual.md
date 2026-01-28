@@ -20,7 +20,3 @@ Manual de Utilizacao - DR Solucoes
 5. Backup e Google Sheets
 - Exporte backup completo em Configuracoes > Backup
 - Integre com Google Sheets em Configuracoes
-
-6. Modo de teste
-- Inicie o teste com a senha dr397210
-- Ao expirar, as funcoes sao bloqueadas

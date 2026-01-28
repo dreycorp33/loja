@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DR Soluções - PDV & Gestão</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #ffffff;
+      --muted: #94a3b8;
+      --text: #0f172a;
+      --accent: #2563eb;
+      --accent-2: #0ea5e9;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --border: #e2e8f0;
+      --shadow: 0 12px 25px rgba(15, 23, 42, 0.15);
+      --radius: 12px;
+      --font: "Inter", system-ui, -apple-system, sans-serif;
+      --gap: 16px;
+      --sidebar-width: 260px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: #f8fafc;
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    aside {
+      width: var(--sidebar-width);
+      background: var(--bg);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 20px;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .brand small {
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    nav button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    nav button.active {
+      background: rgba(37, 99, 235, 0.2);
+      color: #dbeafe;
+    }
+
+    nav button:hover { background: rgba(148, 163, 184, 0.2); }
+
+    .sidebar-footer {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header .user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    header .user span {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      min-height: 100vh;
+    }
+
+    .content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .field textarea { resize: vertical; }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn.secondary { background: #1f2937; }
+    .btn.outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .btn.danger { background: var(--danger); }
+    .btn.success { background: var(--success); }
+    .btn.warning { background: var(--warning); color: #1f2937; }
+    .btn.ghost { background: #e2e8f0; color: #0f172a; }
+
+    .pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th { font-size: 12px; text-transform: uppercase; color: #64748b; }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .flex {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .muted { color: #64748b; font-size: 12px; }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 1fr 80px 100px 100px 80px;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 13px;
+    }
+
+    .cart-item input { width: 100%; }
+
+    .hidden { display: none !important; }
+
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      z-index: 50;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 45;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      width: min(640px, 90vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .print-area {
+      display: none;
+    }
+
+    .touch .btn { padding: 14px 18px; font-size: 16px; }
+    .touch nav button { padding: 14px 16px; font-size: 15px; }
+
+    @media (max-width: 1100px) {
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 900px) {
+      aside { width: 200px; }
+    }
+
+    @media (max-width: 780px) {
+      .app { flex-direction: column; }
+      aside { width: 100%; flex-direction: row; overflow-x: auto; }
+      nav { flex-direction: row; flex-wrap: wrap; }
+      header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .app, header, aside, main, .content { display: none !important; }
+      .print-area {
+        display: block !important;
+        width: 80mm;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        color: black;
+      }
+      .print-area h2 { text-align: center; margin: 0 0 6px; font-size: 14px; }
+      .print-area hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+      .print-area .line { display: flex; justify-content: space-between; }
+      .print-area .items { margin-top: 6px; }
+      .print-area .items div { display: flex; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside>
+      <div class="brand">
+        DR Soluções
+        <small>PDV & Gestão Offline</small>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-footer">
+        WhatsApp: 35991617669
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <strong id="header-title">Dashboard</strong>
+          <div class="muted" id="header-subtitle">Visão geral da loja</div>
+        </div>
+        <div class="user">
+          <span id="user-role">-</span>
+          <div>
+            <div id="user-name">-</div>
+            <button class="btn ghost" id="logout-btn">Sair</button>
+          </div>
+        </div>
+      </header>
+      <section class="content" id="view-container"></section>
+    </main>
+  </div>
+
+  <div class="login-overlay" id="login-overlay">
+    <div class="card" style="width: min(420px, 90vw)">
+      <h2>Entrar</h2>
+      <p class="muted">Use um usuário local salvo no IndexedDB.</p>
+      <div class="field">
+        <label>Usuário</label>
+        <input id="login-user" placeholder="admin" />
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="login-pass" placeholder="1234" />
+      </div>
+      <button class="btn" id="login-btn" style="width: 100%;">Entrar</button>
+      <p class="muted" style="margin-top: 12px;">Primeiro acesso? usuário <strong>admin</strong> senha <strong>1234</strong>.</p>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="product-modal">
+    <div class="modal-content">
+      <div class="flex-between">
+        <h3>Cadastrar produto</h3>
+        <button class="btn ghost" onclick="UI.closeProductModal()">Fechar</button>
+      </div>
+      <form id="product-form" class="grid grid-2" style="margin-top: 12px;">
+        <div class="field">
+          <label>Nome</label>
+          <input name="name" required />
+        </div>
+        <div class="field">
+          <label>SKU</label>
+          <input name="sku" />
+        </div>
+        <div class="field">
+          <label>Código de barras (EAN/UPC)</label>
+          <input name="barcode" />
+        </div>
+        <div class="field">
+          <label>Categoria</label>
+          <input name="category" />
+        </div>
+        <div class="field">
+          <label>Marca</label>
+          <input name="brand" />
+        </div>
+        <div class="field">
+          <label>Preço (R$)</label>
+          <input name="price" type="number" step="0.01" />
+        </div>
+        <div class="field">
+          <label>Custo (R$)</label>
+          <input name="cost" type="number" step="0.01" />
+        </div>
+        <div class="field">
+          <label>Margem (%)</label>
+          <input name="margin" type="number" step="0.01" readonly />
+        </div>
+        <div class="field">
+          <label>Variações (JSON)</label>
+          <textarea name="variants" placeholder='[{"size":"P","color":"Preto","stock":10}]'></textarea>
+        </div>
+        <div class="field">
+          <label>Fornecedor</label>
+          <input name="supplier" />
+        </div>
+        <div class="field">
+          <label>Unidade</label>
+          <input name="unit" value="peça" />
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select name="status">
+            <option value="active">Ativo</option>
+            <option value="inactive">Inativo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Foto (local)</label>
+          <input name="photo" type="file" accept="image/*" />
+        </div>
+        <div class="field" style="grid-column: 1/-1;">
+          <label>Observações</label>
+          <textarea name="notes"></textarea>
+        </div>
+        <div style="grid-column: 1/-1; display: flex; gap: 12px;">
+          <button type="submit" class="btn success">Salvar produto</button>
+          <button type="button" class="btn ghost" onclick="UI.closeProductModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="camera-modal">
+    <div class="modal-content">
+      <div class="flex-between">
+        <h3>Leitor de câmera</h3>
+        <button class="btn ghost" onclick="UI.closeCameraModal()">Fechar</button>
+      </div>
+      <p class="muted" id="camera-support">Tentando iniciar a câmera...</p>
+      <video id="camera-video" autoplay playsinline style="width: 100%; border-radius: 12px; margin-top: 12px;"></video>
+    </div>
+  </div>
+
+  <div class="print-area" id="print-area"></div>
+
+  <script>
+    const DB_NAME = "dr_solucoes_pdv";
+    const DB_VERSION = 1;
+
+    const state = {
+      user: null,
+      products: [],
+      customers: [],
+      sales: [],
+      cash: [],
+      movements: [],
+      settings: {},
+      cart: [],
+      cartDiscount: { type: "percent", value: 0 },
+      cartFee: 0,
+      selectedCustomer: null,
+      currentView: "dashboard",
+      debug: false,
+      touch: false,
+      barcodeInput: "",
+      lastReceipt: null,
+    };
+
+    const storeNames = [
+      "products",
+      "customers",
+      "sales",
+      "cash",
+      "movements",
+      "users",
+      "settings",
+    ];
+
+    class DB {
+      constructor() {
+        this.db = null;
+      }
+
+      async open() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            storeNames.forEach((name) => {
+              if (!db.objectStoreNames.contains(name)) {
+                db.createObjectStore(name, { keyPath: "id" });
+              }
+            });
+          };
+          request.onsuccess = () => {
+            this.db = request.result;
+            resolve(this.db);
+          };
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async put(store, value) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(store, "readwrite");
+          tx.objectStore(store).put(value);
+          tx.oncomplete = () => resolve(value);
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async delete(store, id) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(store, "readwrite");
+          tx.objectStore(store).delete(id);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      async getAll(store) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(store, "readonly");
+          const request = tx.objectStore(store).getAll();
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async get(store, id) {
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(store, "readonly");
+          const request = tx.objectStore(store).get(id);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+    }
+
+    const db = new DB();
+
+    const Utils = {
+      uuid() {
+        return crypto.randomUUID();
+      },
+      formatCurrency(value) {
+        return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
+      },
+      formatDate(date) {
+        return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(date);
+      },
+      maskPhone(value) {
+        const digits = value.replace(/\D/g, "").slice(0, 11);
+        if (digits.length <= 10) {
+          return digits.replace(/(\d{2})(\d{0,4})(\d{0,4})/, "($1) $2-$3").trim();
+        }
+        return digits.replace(/(\d{2})(\d{0,5})(\d{0,4})/, "($1) $2-$3").trim();
+      },
+      parseNumber(value) {
+        const num = parseFloat(String(value).replace(",", "."));
+        return Number.isNaN(num) ? 0 : num;
+      },
+      download(filename, content, type = "text/plain") {
+        const blob = new Blob([content], { type });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      },
+      async toBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      },
+    };
+
+    const UI = {
+      toast(message) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3200);
+      },
+      openProductModal(barcode = "") {
+        const modal = document.getElementById("product-modal");
+        modal.classList.remove("hidden");
+        const form = document.getElementById("product-form");
+        form.reset();
+        form.barcode.value = barcode;
+      },
+      closeProductModal() {
+        document.getElementById("product-modal").classList.add("hidden");
+      },
+      openCameraModal() {
+        document.getElementById("camera-modal").classList.remove("hidden");
+        Camera.start();
+      },
+      closeCameraModal() {
+        Camera.stop();
+        document.getElementById("camera-modal").classList.add("hidden");
+      },
+    };
+
+    const Auth = {
+      async login(username, password) {
+        const users = await db.getAll("users");
+        const user = users.find((u) => u.username === username && u.password === password);
+        if (user) {
+          state.user = user;
+          localStorage.setItem("sessionUser", user.id);
+          return true;
+        }
+        return false;
+      },
+      async restore() {
+        const id = localStorage.getItem("sessionUser");
+        if (!id) return;
+        const user = await db.get("users", id);
+        if (user) state.user = user;
+      },
+      logout() {
+        localStorage.removeItem("sessionUser");
+        state.user = null;
+      },
+    };
+
+    const Router = {
+      views: {},
+      register(key, view) {
+        this.views[key] = view;
+      },
+      async navigate(key) {
+        state.currentView = key;
+        const view = this.views[key];
+        if (!view) return;
+        document.getElementById("header-title").textContent = view.title;
+        document.getElementById("header-subtitle").textContent = view.subtitle;
+        const container = document.getElementById("view-container");
+        container.innerHTML = "";
+        container.appendChild(await view.render());
+        document.querySelectorAll("nav button").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.view === key);
+        });
+      },
+    };
+
+    const Permissions = {
+      rules: {
+        operador: ["pdv"],
+        gerente: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config"],
+        admin: ["pdv", "produtos", "clientes", "estoque", "caixa", "relatorios", "config"],
+      },
+      can(view) {
+        if (!state.user) return false;
+        const allowed = this.rules[state.user.role] || [];
+        return allowed.includes(view) || state.user.role === "admin";
+      },
+    };
+
+    const Camera = {
+      stream: null,
+      async start() {
+        const support = document.getElementById("camera-support");
+        const video = document.getElementById("camera-video");
+        if (!("BarcodeDetector" in window)) {
+          support.textContent = "BarcodeDetector não suportado neste navegador. Use o leitor USB ou digite o código.";
+          return;
+        }
+        try {
+          this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          video.srcObject = this.stream;
+          support.textContent = "Aponte a câmera para o código de barras.";
+          const detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"] });
+          const scan = async () => {
+            if (!this.stream) return;
+            const barcodes = await detector.detect(video);
+            if (barcodes.length) {
+              const code = barcodes[0].rawValue;
+              UI.toast(`Código detectado: ${code}`);
+              document.getElementById("pdv-search").value = code;
+              PDV.search(code);
+              UI.closeCameraModal();
+              return;
+            }
+            requestAnimationFrame(scan);
+          };
+          requestAnimationFrame(scan);
+        } catch (error) {
+          support.textContent = "Não foi possível acessar a câmera. Verifique permissões.";
+        }
+      },
+      stop() {
+        if (this.stream) {
+          this.stream.getTracks().forEach((track) => track.stop());
+          this.stream = null;
+        }
+      },
+    };
+
+    const Data = {
+      async loadAll() {
+        const [products, customers, sales, cash, movements, settings] = await Promise.all([
+          db.getAll("products"),
+          db.getAll("customers"),
+          db.getAll("sales"),
+          db.getAll("cash"),
+          db.getAll("movements"),
+          db.getAll("settings"),
+        ]);
+        state.products = products;
+        state.customers = customers;
+        state.sales = sales;
+        state.cash = cash;
+        state.movements = movements;
+        state.settings = settings[0] || {};
+      },
+      async seed() {
+        const products = await db.getAll("products");
+        if (products.length) return;
+        const sampleProducts = [
+          {
+            id: Utils.uuid(),
+            name: "Camiseta Básica Branca",
+            sku: "CAM-001",
+            barcode: "7891000000011",
+            category: "Camisetas",
+            brand: "Urban Wear",
+            price: 59.9,
+            cost: 25.0,
+            margin: 139.6,
+            variants: [
+              { size: "P", color: "Branco", stock: 10 },
+              { size: "M", color: "Branco", stock: 8 },
+              { size: "G", color: "Branco", stock: 6 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor A",
+            status: "active",
+            notes: "Algodão premium",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Calça Jeans Slim",
+            sku: "CAL-201",
+            barcode: "7891000000028",
+            category: "Calças",
+            brand: "Denim Pro",
+            price: 149.9,
+            cost: 70.0,
+            margin: 114.1,
+            variants: [
+              { size: "38", color: "Azul", stock: 5 },
+              { size: "40", color: "Azul", stock: 7 },
+              { size: "42", color: "Azul", stock: 4 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor B",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Vestido Floral",
+            sku: "VES-030",
+            barcode: "7891000000035",
+            category: "Vestidos",
+            brand: "Bella",
+            price: 189.9,
+            cost: 90.0,
+            margin: 111.0,
+            variants: [
+              { size: "P", color: "Floral", stock: 3 },
+              { size: "M", color: "Floral", stock: 4 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor C",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Jaqueta Jeans",
+            sku: "JAQ-050",
+            barcode: "7891000000042",
+            category: "Jaquetas",
+            brand: "Denim Pro",
+            price: 219.9,
+            cost: 120.0,
+            margin: 83.25,
+            variants: [
+              { size: "M", color: "Azul", stock: 4 },
+              { size: "G", color: "Azul", stock: 2 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor B",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Saia Midi",
+            sku: "SAI-099",
+            barcode: "7891000000059",
+            category: "Saias",
+            brand: "Bella",
+            price: 119.9,
+            cost: 60.0,
+            margin: 99.8,
+            variants: [
+              { size: "P", color: "Preto", stock: 6 },
+              { size: "M", color: "Preto", stock: 5 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor C",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Camisa Social",
+            sku: "CAM-120",
+            barcode: "7891000000066",
+            category: "Camisas",
+            brand: "Classic",
+            price: 129.9,
+            cost: 55.0,
+            margin: 136.1,
+            variants: [
+              { size: "M", color: "Azul Claro", stock: 8 },
+              { size: "G", color: "Azul Claro", stock: 6 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor D",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Bermuda Moletom",
+            sku: "BER-333",
+            barcode: "7891000000073",
+            category: "Bermudas",
+            brand: "Urban Wear",
+            price: 79.9,
+            cost: 35.0,
+            margin: 128.3,
+            variants: [
+              { size: "M", color: "Cinza", stock: 7 },
+              { size: "G", color: "Cinza", stock: 6 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor A",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Blusa Tricot",
+            sku: "BLU-717",
+            barcode: "7891000000080",
+            category: "Blusas",
+            brand: "Warm",
+            price: 139.9,
+            cost: 68.0,
+            margin: 105.7,
+            variants: [
+              { size: "M", color: "Bege", stock: 5 },
+              { size: "G", color: "Bege", stock: 4 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor E",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Regata Básica",
+            sku: "REG-410",
+            barcode: "7891000000097",
+            category: "Regatas",
+            brand: "Urban Wear",
+            price: 49.9,
+            cost: 20.0,
+            margin: 149.5,
+            variants: [
+              { size: "P", color: "Preto", stock: 12 },
+              { size: "M", color: "Preto", stock: 10 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor A",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: Utils.uuid(),
+            name: "Moletom Canguru",
+            sku: "MOL-908",
+            barcode: "7891000000103",
+            category: "Moletons",
+            brand: "Street",
+            price: 189.9,
+            cost: 95.0,
+            margin: 99.9,
+            variants: [
+              { size: "M", color: "Cinza", stock: 5 },
+              { size: "G", color: "Cinza", stock: 5 },
+            ],
+            unit: "peça",
+            supplier: "Fornecedor F",
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+        ];
+        const sampleCustomers = [
+          { id: Utils.uuid(), name: "Ana Souza", phone: "35999990001", email: "ana@email.com", cpf: "", birthday: "1990-03-12", address: "Rua A, 120", notes: "VIP" },
+          { id: Utils.uuid(), name: "Carlos Silva", phone: "35999990002", email: "carlos@email.com", cpf: "", birthday: "1987-11-01", address: "Rua B, 40", notes: "" },
+          { id: Utils.uuid(), name: "Fernanda Lima", phone: "35999990003", email: "fernanda@email.com", cpf: "", birthday: "1995-07-23", address: "Rua C, 99", notes: "" },
+          { id: Utils.uuid(), name: "Marcos Santos", phone: "35999990004", email: "marcos@email.com", cpf: "", birthday: "1982-09-02", address: "Rua D, 55", notes: "" },
+          { id: Utils.uuid(), name: "Patricia Alves", phone: "35999990005", email: "patricia@email.com", cpf: "", birthday: "1993-01-30", address: "Rua E, 88", notes: "" },
+        ];
+        const users = [
+          { id: Utils.uuid(), username: "admin", password: "1234", role: "admin", name: "Administrador" },
+          { id: Utils.uuid(), username: "gerente", password: "1234", role: "gerente", name: "Gerente" },
+          { id: Utils.uuid(), username: "operador", password: "1234", role: "operador", name: "Operador" },
+        ];
+        for (const product of sampleProducts) await db.put("products", product);
+        for (const customer of sampleCustomers) await db.put("customers", customer);
+        for (const user of users) await db.put("users", user);
+        await db.put("settings", {
+          id: "settings",
+          storeName: "DR Soluções",
+          whatsapp: "35991617669",
+          receiptFooter: "Obrigado por comprar com a DR Soluções!",
+          defaultMinStock: 3,
+          discountLimit: { operador: 5, gerente: 15, admin: 100 },
+          touchMode: false,
+          debug: false,
+          taxRate: 0,
+        });
+      },
+    };
+
+    const PDV = {
+      async search(query) {
+        const term = query.trim().toLowerCase();
+        if (!term) return;
+        const results = state.products.filter((product) => {
+          return (
+            product.name.toLowerCase().includes(term) ||
+            product.sku?.toLowerCase().includes(term) ||
+            product.barcode?.toLowerCase().includes(term) ||
+            product.category?.toLowerCase().includes(term) ||
+            product.brand?.toLowerCase().includes(term)
+          );
+        });
+        if (!results.length && term.length >= 8) {
+          UI.openProductModal(term);
+          UI.toast("Produto não encontrado. Abra o cadastro rápido.");
+          return;
+        }
+        this.renderSearchResults(results);
+      },
+      renderSearchResults(results) {
+        const list = document.getElementById("pdv-results");
+        if (!list) return;
+        list.innerHTML = "";
+        results.slice(0, 8).forEach((product) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <strong>${product.name}</strong>
+            <div class="muted">${product.category || ""} • ${product.brand || ""}</div>
+            <div class="muted">SKU: ${product.sku || "-"}</div>
+            <div class="flex-between" style="margin-top: 8px;">
+              <span class="pill">${Utils.formatCurrency(product.price)}</span>
+              <button class="btn" data-id="${product.id}">Adicionar</button>
+            </div>
+          `;
+          card.querySelector("button").addEventListener("click", () => PDV.addToCart(product.id));
+          list.appendChild(card);
+        });
+      },
+      addToCart(productId) {
+        const product = state.products.find((item) => item.id === productId);
+        if (!product) return;
+        const variant = product.variants?.[0] || { size: "Único", color: "-", stock: 0 };
+        if (variant.stock <= 0 && state.user.role !== "admin") {
+          UI.toast("Estoque insuficiente para este item.");
+          return;
+        }
+        const existing = state.cart.find((item) => item.productId === productId && item.variantIndex === 0);
+        if (existing) {
+          if (variant.stock <= existing.quantity && state.user.role !== "admin") {
+            UI.toast("Estoque insuficiente.");
+            return;
+          }
+          existing.quantity += 1;
+        } else {
+          state.cart.push({
+            id: Utils.uuid(),
+            productId,
+            name: product.name,
+            variantIndex: 0,
+            variant,
+            quantity: 1,
+            unitPrice: product.price,
+            discount: 0,
+          });
+        }
+        PDV.renderCart();
+      },
+      removeFromCart(cartId) {
+        state.cart = state.cart.filter((item) => item.id !== cartId);
+        PDV.renderCart();
+      },
+      updateCartItem(cartId, field, value) {
+        const item = state.cart.find((i) => i.id === cartId);
+        if (!item) return;
+        if (field === "quantity") {
+          const qty = Math.max(1, parseInt(value, 10) || 1);
+          if (item.variant.stock < qty && state.user.role !== "admin") {
+            UI.toast("Quantidade acima do estoque.");
+            return;
+          }
+          item.quantity = qty;
+        } else if (field === "discount") {
+          item.discount = Math.max(0, Utils.parseNumber(value));
+        }
+        PDV.renderCart();
+      },
+      clearCart() {
+        state.cart = [];
+        state.cartDiscount = { type: "percent", value: 0 };
+        state.cartFee = 0;
+        PDV.renderCart();
+      },
+      cartTotals() {
+        const subtotal = state.cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+        const itemDiscounts = state.cart.reduce((sum, item) => sum + item.discount, 0);
+        const cartDiscountValue = state.cartDiscount.type === "percent"
+          ? subtotal * (state.cartDiscount.value / 100)
+          : state.cartDiscount.value;
+        const fee = state.cartFee;
+        const total = Math.max(0, subtotal - itemDiscounts - cartDiscountValue + fee);
+        return { subtotal, itemDiscounts, cartDiscountValue, fee, total };
+      },
+      renderCart() {
+        const container = document.getElementById("pdv-cart");
+        if (!container) return;
+        container.innerHTML = "";
+        state.cart.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "cart-item";
+          row.innerHTML = `
+            <div>
+              <strong>${item.name}</strong>
+              <div class="muted">${item.variant.size || ""} ${item.variant.color || ""}</div>
+            </div>
+            <input type="number" min="1" value="${item.quantity}" />
+            <div>${Utils.formatCurrency(item.unitPrice)}</div>
+            <input type="number" min="0" step="0.01" value="${item.discount}" />
+            <div class="flex">
+              <span>${Utils.formatCurrency(item.unitPrice * item.quantity - item.discount)}</span>
+              <button class="btn ghost" data-remove>✕</button>
+            </div>
+          `;
+          const [qtyInput, discountInput] = row.querySelectorAll("input");
+          qtyInput.addEventListener("change", (event) => PDV.updateCartItem(item.id, "quantity", event.target.value));
+          discountInput.addEventListener("change", (event) => PDV.updateCartItem(item.id, "discount", event.target.value));
+          row.querySelector("[data-remove]").addEventListener("click", () => PDV.removeFromCart(item.id));
+          container.appendChild(row);
+        });
+        const totals = PDV.cartTotals();
+        document.getElementById("pdv-subtotal").textContent = Utils.formatCurrency(totals.subtotal);
+        document.getElementById("pdv-discounts").textContent = Utils.formatCurrency(totals.itemDiscounts + totals.cartDiscountValue);
+        document.getElementById("pdv-fee").textContent = Utils.formatCurrency(totals.fee);
+        document.getElementById("pdv-total").textContent = Utils.formatCurrency(totals.total);
+      },
+      async finalizeSale() {
+        if (!state.cart.length) {
+          UI.toast("Carrinho vazio.");
+          return;
+        }
+        const paymentMethod = document.getElementById("pdv-payment").value;
+        const paid = Utils.parseNumber(document.getElementById("pdv-paid").value);
+        const totals = PDV.cartTotals();
+        const change = paid > totals.total ? paid - totals.total : 0;
+        const sale = {
+          id: Utils.uuid(),
+          date: new Date().toISOString(),
+          userId: state.user.id,
+          userName: state.user.name,
+          items: state.cart,
+          totals,
+          paymentMethod,
+          paid,
+          change,
+          customerId: state.selectedCustomer,
+        };
+        for (const item of state.cart) {
+          const product = state.products.find((p) => p.id === item.productId);
+          if (!product) continue;
+          if (product.variants && product.variants[item.variantIndex]) {
+            product.variants[item.variantIndex].stock = Math.max(
+              0,
+              product.variants[item.variantIndex].stock - item.quantity
+            );
+          }
+          await db.put("products", product);
+          await db.put("movements", {
+            id: Utils.uuid(),
+            type: "saida",
+            date: new Date().toISOString(),
+            productId: product.id,
+            quantity: item.quantity,
+            userId: state.user.id,
+            reason: "Venda",
+          });
+        }
+        await db.put("sales", sale);
+        await db.put("cash", {
+          id: Utils.uuid(),
+          type: "entrada",
+          date: new Date().toISOString(),
+          amount: totals.total,
+          method: paymentMethod,
+          saleId: sale.id,
+        });
+        state.lastReceipt = sale;
+        await Data.loadAll();
+        PDV.clearCart();
+        document.getElementById("pdv-paid").value = "";
+        UI.toast("Venda finalizada com sucesso.");
+      },
+      printReceipt(copy = false) {
+        if (!state.lastReceipt) {
+          UI.toast("Nenhuma venda finalizada para imprimir.");
+          return;
+        }
+        const sale = state.lastReceipt;
+        const storeName = state.settings.storeName || "DR Soluções";
+        const footer = state.settings.receiptFooter || "Obrigado pela preferência";
+        const itemsHtml = sale.items
+          .map((item) => `
+            <div>
+              <span>${item.name} x${item.quantity}</span>
+              <span>${Utils.formatCurrency(item.unitPrice * item.quantity - item.discount)}</span>
+            </div>
+          `)
+          .join("");
+        document.getElementById("print-area").innerHTML = `
+          <h2>${storeName}</h2>
+          <div class="line"><span>Venda:</span><span>${sale.id.slice(0, 6)}</span></div>
+          <div class="line"><span>Data:</span><span>${Utils.formatDate(new Date(sale.date))}</span></div>
+          <hr />
+          <div class="items">${itemsHtml}</div>
+          <hr />
+          <div class="line"><span>Descontos:</span><span>${Utils.formatCurrency(sale.totals.itemDiscounts + sale.totals.cartDiscountValue)}</span></div>
+          <div class="line"><span>Taxas:</span><span>${Utils.formatCurrency(sale.totals.fee)}</span></div>
+          <div class="line"><span>Total:</span><span>${Utils.formatCurrency(sale.totals.total)}</span></div>
+          <div class="line"><span>Pagamento:</span><span>${sale.paymentMethod}</span></div>
+          <div class="line"><span>Troco:</span><span>${Utils.formatCurrency(sale.change)}</span></div>
+          <hr />
+          <div style="text-align:center;">${footer}</div>
+          <div style="text-align:center; margin-top: 6px;">WhatsApp: ${state.settings.whatsapp || "35991617669"}</div>
+          ${copy ? '<div style="text-align:center; margin-top: 6px;">2ª via</div>' : ""}
+        `;
+        window.print();
+      },
+    };
+
+    const Views = {
+      dashboard: {
+        title: "Dashboard",
+        subtitle: "Indicadores principais",
+        async render() {
+          const card = document.createElement("div");
+          const today = new Date();
+          const isSameDay = (date) => {
+            const d = new Date(date);
+            return d.toDateString() === today.toDateString();
+          };
+          const salesToday = state.sales.filter((sale) => isSameDay(sale.date));
+          const totalToday = salesToday.reduce((sum, sale) => sum + sale.totals.total, 0);
+          const ticket = salesToday.length ? totalToday / salesToday.length : 0;
+          const topProducts = {};
+          state.sales.forEach((sale) => {
+            sale.items.forEach((item) => {
+              topProducts[item.name] = (topProducts[item.name] || 0) + item.quantity;
+            });
+          });
+          const topEntries = Object.entries(topProducts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+          card.className = "grid grid-3";
+          card.innerHTML = `
+            <div class="card">
+              <h3>Faturamento hoje</h3>
+              <p style="font-size: 24px; font-weight: 700;">${Utils.formatCurrency(totalToday)}</p>
+              <div class="muted">${salesToday.length} vendas</div>
+            </div>
+            <div class="card">
+              <h3>Ticket médio</h3>
+              <p style="font-size: 24px; font-weight: 700;">${Utils.formatCurrency(ticket)}</p>
+              <div class="muted">Base diário</div>
+            </div>
+            <div class="card">
+              <h3>Produtos ativos</h3>
+              <p style="font-size: 24px; font-weight: 700;">${state.products.length}</p>
+              <div class="muted">Total cadastrados</div>
+            </div>
+          `;
+
+          const report = document.createElement("div");
+          report.className = "card";
+          report.innerHTML = `
+            <h3>Top produtos</h3>
+            <ul>
+              ${topEntries.map(([name, qty]) => `<li>${name} - ${qty} un.</li>`).join("") || "Nenhuma venda ainda."}
+            </ul>
+          `;
+
+          const wrapper = document.createElement("div");
+          wrapper.className = "grid";
+          wrapper.append(card, report);
+          return wrapper;
+        },
+      },
+      pdv: {
+        title: "PDV",
+        subtitle: "Venda rápida com leitor de código de barras",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          container.innerHTML = `
+            <div class="card">
+              <div class="toolbar">
+                <div class="field" style="flex: 1;">
+                  <label>Buscar produto (F2)</label>
+                  <input id="pdv-search" placeholder="Nome, SKU, código de barras" />
+                </div>
+                <div class="flex">
+                  <button class="btn ghost" id="pdv-camera">Ler câmera</button>
+                  <button class="btn ghost" id="pdv-clear">Limpar (ESC)</button>
+                </div>
+              </div>
+              <div class="grid grid-3" id="pdv-results" style="margin-top: 16px;"></div>
+            </div>
+            <div class="grid grid-2">
+              <div class="card">
+                <div class="flex-between">
+                  <h3>Carrinho</h3>
+                  <span class="badge">Itens: ${state.cart.length}</span>
+                </div>
+                <div id="pdv-cart" style="margin-top: 12px;"></div>
+                <div class="grid grid-3" style="margin-top: 12px;">
+                  <div class="field">
+                    <label>Desconto geral</label>
+                    <input id="pdv-discount" type="number" step="0.01" value="0" />
+                  </div>
+                  <div class="field">
+                    <label>Tipo desconto</label>
+                    <select id="pdv-discount-type">
+                      <option value="percent">%</option>
+                      <option value="value">R$</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Taxa</label>
+                    <input id="pdv-fee-input" type="number" step="0.01" value="0" />
+                  </div>
+                </div>
+                <div class="grid" style="margin-top: 12px;">
+                  <div class="flex-between"><span>Subtotal</span><strong id="pdv-subtotal">R$ 0,00</strong></div>
+                  <div class="flex-between"><span>Descontos</span><strong id="pdv-discounts">R$ 0,00</strong></div>
+                  <div class="flex-between"><span>Taxas</span><strong id="pdv-fee">R$ 0,00</strong></div>
+                  <div class="flex-between"><span>Total</span><strong id="pdv-total">R$ 0,00</strong></div>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Pagamento</h3>
+                <div class="field">
+                  <label>Cliente (opcional)</label>
+                  <select id="pdv-customer">
+                    <option value="">Selecione</option>
+                    ${state.customers.map((customer) => `<option value="${customer.id}">${customer.name}</option>`).join("")}
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Forma de pagamento</label>
+                  <select id="pdv-payment">
+                    <option>Dinheiro</option>
+                    <option>Pix</option>
+                    <option>Débito</option>
+                    <option>Crédito</option>
+                    <option>Misto</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Valor recebido</label>
+                  <input id="pdv-paid" type="number" step="0.01" />
+                </div>
+                <div class="grid grid-2" style="margin-top: 12px;">
+                  <button class="btn success" id="pdv-finalize">Finalizar (F4)</button>
+                  <button class="btn ghost" id="pdv-print">Imprimir cupom</button>
+                </div>
+                <button class="btn outline" style="margin-top: 12px;" id="pdv-print-copy">Gerar 2ª via</button>
+              </div>
+            </div>
+          `;
+
+          container.querySelector("#pdv-search").addEventListener("input", (event) => PDV.search(event.target.value));
+          container.querySelector("#pdv-camera").addEventListener("click", UI.openCameraModal);
+          container.querySelector("#pdv-clear").addEventListener("click", PDV.clearCart);
+          container.querySelector("#pdv-finalize").addEventListener("click", PDV.finalizeSale);
+          container.querySelector("#pdv-print").addEventListener("click", () => PDV.printReceipt(false));
+          container.querySelector("#pdv-print-copy").addEventListener("click", () => PDV.printReceipt(true));
+          container.querySelector("#pdv-discount").addEventListener("change", (event) => {
+            state.cartDiscount.value = Utils.parseNumber(event.target.value);
+            PDV.renderCart();
+          });
+          container.querySelector("#pdv-discount-type").addEventListener("change", (event) => {
+            state.cartDiscount.type = event.target.value;
+            PDV.renderCart();
+          });
+          container.querySelector("#pdv-fee-input").addEventListener("change", (event) => {
+            state.cartFee = Utils.parseNumber(event.target.value);
+            PDV.renderCart();
+          });
+          container.querySelector("#pdv-customer").addEventListener("change", (event) => {
+            state.selectedCustomer = event.target.value || null;
+          });
+
+          PDV.renderCart();
+          return container;
+        },
+      },
+      produtos: {
+        title: "Produtos",
+        subtitle: "Cadastro completo e importação",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          container.innerHTML = `
+            <div class="card">
+              <div class="toolbar">
+                <div class="field" style="flex: 1;">
+                  <label>Pesquisar</label>
+                  <input id="product-search" placeholder="Nome, SKU, código de barras" />
+                </div>
+                <div class="flex">
+                  <button class="btn" id="product-new">Novo produto</button>
+                  <button class="btn ghost" id="product-export">Exportar JSON</button>
+                  <button class="btn ghost" id="product-export-csv">Exportar CSV</button>
+                  <button class="btn ghost" id="product-import">Importar JSON</button>
+                  <button class="btn ghost" id="product-template">Baixar template CSV</button>
+                </div>
+              </div>
+              <div class="muted" style="margin-top: 8px;">Importação CSV: nome,sku,barcode,category,brand,price,cost,variants_json,unit,supplier,status</div>
+              <table style="margin-top: 12px;">
+                <thead>
+                  <tr>
+                    <th>Produto</th>
+                    <th>SKU</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="product-table"></tbody>
+              </table>
+            </div>
+          `;
+
+          const renderRows = (items) => {
+            const tbody = container.querySelector("#product-table");
+            tbody.innerHTML = "";
+            items.forEach((product) => {
+              const totalStock = (product.variants || []).reduce((sum, v) => sum + v.stock, 0);
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${product.name}</td>
+                <td>${product.sku || "-"}</td>
+                <td>${Utils.formatCurrency(product.price)}</td>
+                <td>${totalStock}</td>
+                <td>${product.status === "active" ? "Ativo" : "Inativo"}</td>
+                <td>
+                  <button class="btn ghost" data-edit>Editar</button>
+                  <button class="btn ghost" data-delete>Excluir</button>
+                </td>
+              `;
+              row.querySelector("[data-edit]").addEventListener("click", () => Products.edit(product));
+              row.querySelector("[data-delete]").addEventListener("click", () => Products.remove(product.id));
+              tbody.appendChild(row);
+            });
+          };
+
+          renderRows(state.products);
+
+          container.querySelector("#product-search").addEventListener("input", (event) => {
+            const term = event.target.value.toLowerCase();
+            const filtered = state.products.filter((product) =>
+              [product.name, product.sku, product.barcode]
+                .filter(Boolean)
+                .some((value) => value.toLowerCase().includes(term))
+            );
+            renderRows(filtered);
+          });
+          container.querySelector("#product-new").addEventListener("click", () => UI.openProductModal());
+          container.querySelector("#product-export").addEventListener("click", () => Products.exportJSON());
+          container.querySelector("#product-export-csv").addEventListener("click", () => Products.exportCSV());
+          container.querySelector("#product-template").addEventListener("click", () => Products.downloadTemplate());
+          container.querySelector("#product-import").addEventListener("click", () => Products.importJSON());
+          return container;
+        },
+      },
+      clientes: {
+        title: "Clientes",
+        subtitle: "Cadastro e histórico",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          container.innerHTML = `
+            <div class="card">
+              <div class="toolbar">
+                <div class="field" style="flex: 1;">
+                  <label>Pesquisar</label>
+                  <input id="customer-search" placeholder="Nome ou telefone" />
+                </div>
+                <button class="btn" id="customer-new">Novo cliente</button>
+                <button class="btn ghost" id="customer-export">Exportar JSON</button>
+              </div>
+              <table style="margin-top: 12px;">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Email</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="customer-table"></tbody>
+              </table>
+            </div>
+            <div class="card" id="customer-form-card" style="display:none;">
+              <h3>Novo cliente</h3>
+              <form id="customer-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Nome</label><input name="name" required /></div>
+                <div class="field"><label>Telefone</label><input name="phone" /></div>
+                <div class="field"><label>Email</label><input name="email" type="email" /></div>
+                <div class="field"><label>CPF</label><input name="cpf" /></div>
+                <div class="field"><label>Nascimento</label><input name="birthday" type="date" /></div>
+                <div class="field"><label>Endereço</label><input name="address" /></div>
+                <div class="field" style="grid-column: 1/-1;"><label>Observações</label><textarea name="notes"></textarea></div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn success" type="submit">Salvar</button>
+                  <button class="btn ghost" type="button" id="customer-cancel">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          `;
+
+          const renderRows = (items) => {
+            const tbody = container.querySelector("#customer-table");
+            tbody.innerHTML = "";
+            items.forEach((customer) => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${customer.name}</td>
+                <td>${Utils.maskPhone(customer.phone || "")}</td>
+                <td>${customer.email || "-"}</td>
+                <td>
+                  <button class="btn ghost" data-edit>Editar</button>
+                  <button class="btn ghost" data-delete>Excluir</button>
+                </td>
+              `;
+              row.querySelector("[data-edit]").addEventListener("click", () => Customers.edit(customer));
+              row.querySelector("[data-delete]").addEventListener("click", () => Customers.remove(customer.id));
+              tbody.appendChild(row);
+            });
+          };
+
+          renderRows(state.customers);
+
+          container.querySelector("#customer-search").addEventListener("input", (event) => {
+            const term = event.target.value.toLowerCase();
+            const filtered = state.customers.filter((customer) =>
+              [customer.name, customer.phone]
+                .filter(Boolean)
+                .some((value) => value.toLowerCase().includes(term))
+            );
+            renderRows(filtered);
+          });
+          container.querySelector("#customer-new").addEventListener("click", () => Customers.showForm());
+          container.querySelector("#customer-export").addEventListener("click", () => Customers.exportJSON());
+          return container;
+        },
+      },
+      estoque: {
+        title: "Estoque",
+        subtitle: "Movimentações e alertas",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          const lowStock = state.products.filter((product) =>
+            (product.variants || []).some((variant) => variant.stock <= (state.settings.defaultMinStock || 3))
+          );
+          container.innerHTML = `
+            <div class="card">
+              <h3>Alertas de estoque baixo</h3>
+              ${lowStock.length
+                ? `<ul>${lowStock.map((product) => `<li>${product.name} - estoque baixo</li>`).join("")}</ul>`
+                : "Nenhum alerta."}
+            </div>
+            <div class="card">
+              <div class="toolbar">
+                <h3>Movimentações</h3>
+                <button class="btn" id="stock-adjust">Ajuste manual</button>
+              </div>
+              <table style="margin-top: 12px;">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Produto</th>
+                    <th>Qtd</th>
+                    <th>Usuário</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${state.movements
+                    .slice(-10)
+                    .reverse()
+                    .map((move) => {
+                      const product = state.products.find((p) => p.id === move.productId);
+                      const user = state.user?.name || "";
+                      return `<tr>
+                        <td>${Utils.formatDate(new Date(move.date))}</td>
+                        <td>${move.type}</td>
+                        <td>${product?.name || "-"}</td>
+                        <td>${move.quantity}</td>
+                        <td>${user}</td>
+                      </tr>`;
+                    })
+                    .join("")}
+                </tbody>
+              </table>
+            </div>
+          `;
+          container.querySelector("#stock-adjust").addEventListener("click", Stock.adjustPrompt);
+          return container;
+        },
+      },
+      caixa: {
+        title: "Caixa",
+        subtitle: "Abertura, fechamento e relatório",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          const totalByMethod = state.cash.reduce((acc, entry) => {
+            acc[entry.method] = (acc[entry.method] || 0) + entry.amount;
+            return acc;
+          }, {});
+          container.innerHTML = `
+            <div class="card">
+              <div class="toolbar">
+                <h3>Controle de caixa</h3>
+                <div class="flex">
+                  <button class="btn" id="cash-open">Abrir caixa</button>
+                  <button class="btn ghost" id="cash-withdraw">Sangria</button>
+                  <button class="btn ghost" id="cash-add">Reforço</button>
+                </div>
+              </div>
+              <div class="grid grid-3" style="margin-top: 12px;">
+                ${Object.entries(totalByMethod)
+                  .map(([method, total]) => `
+                    <div class="card" style="box-shadow:none; border:1px solid #e2e8f0;">
+                      <strong>${method}</strong>
+                      <div class="muted">${Utils.formatCurrency(total)}</div>
+                    </div>
+                  `)
+                  .join("") || "Nenhum lançamento ainda."}
+              </div>
+            </div>
+            <div class="card">
+              <div class="toolbar">
+                <h3>Exportação</h3>
+                <button class="btn ghost" id="cash-export">Exportar CSV</button>
+              </div>
+            </div>
+          `;
+          container.querySelector("#cash-open").addEventListener("click", Cash.open);
+          container.querySelector("#cash-withdraw").addEventListener("click", () => Cash.adjust("sangria"));
+          container.querySelector("#cash-add").addEventListener("click", () => Cash.adjust("reforco"));
+          container.querySelector("#cash-export").addEventListener("click", Cash.exportCSV);
+          return container;
+        },
+      },
+      relatorios: {
+        title: "Relatórios",
+        subtitle: "Vendas e indicadores",
+        async render() {
+          const container = document.createElement("div");
+          const total = state.sales.reduce((sum, sale) => sum + sale.totals.total, 0);
+          const profit = state.sales.reduce((sum, sale) => {
+            return sum + sale.items.reduce((acc, item) => {
+              const product = state.products.find((p) => p.id === item.productId);
+              return acc + (item.unitPrice - (product?.cost || 0)) * item.quantity;
+            }, 0);
+          }, 0);
+          container.className = "grid";
+          container.innerHTML = `
+            <div class="card">
+              <h3>Resumo</h3>
+              <div class="grid grid-3" style="margin-top: 12px;">
+                <div class="card" style="box-shadow:none; border:1px solid #e2e8f0;">
+                  <strong>Faturamento</strong>
+                  <div class="muted">${Utils.formatCurrency(total)}</div>
+                </div>
+                <div class="card" style="box-shadow:none; border:1px solid #e2e8f0;">
+                  <strong>Lucro estimado</strong>
+                  <div class="muted">${Utils.formatCurrency(profit)}</div>
+                </div>
+                <div class="card" style="box-shadow:none; border:1px solid #e2e8f0;">
+                  <strong>Vendas</strong>
+                  <div class="muted">${state.sales.length}</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Vendas recentes</h3>
+              <table style="margin-top: 12px;">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Total</th>
+                    <th>Pagamento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${state.sales.slice(-10).reverse().map((sale) => `
+                    <tr>
+                      <td>${Utils.formatDate(new Date(sale.date))}</td>
+                      <td>${Utils.formatCurrency(sale.totals.total)}</td>
+                      <td>${sale.paymentMethod}</td>
+                    </tr>
+                  `).join("") || ""}
+                </tbody>
+              </table>
+            </div>
+          `;
+          return container;
+        },
+      },
+      config: {
+        title: "Configurações",
+        subtitle: "Preferências e backup",
+        async render() {
+          const container = document.createElement("div");
+          container.className = "grid";
+          const settings = state.settings;
+          container.innerHTML = `
+            <div class="card">
+              <h3>Dados da loja</h3>
+              <form id="settings-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Nome da loja</label><input name="storeName" value="${settings.storeName || ""}" /></div>
+                <div class="field"><label>WhatsApp</label><input name="whatsapp" value="${settings.whatsapp || ""}" /></div>
+                <div class="field"><label>Mensagem no cupom</label><input name="receiptFooter" value="${settings.receiptFooter || ""}" /></div>
+                <div class="field"><label>Estoque mínimo padrão</label><input name="defaultMinStock" type="number" value="${settings.defaultMinStock || 3}" /></div>
+                <div class="field"><label>Taxa padrão (%)</label><input name="taxRate" type="number" value="${settings.taxRate || 0}" /></div>
+                <div class="field"><label>Modo toque</label>
+                  <select name="touchMode">
+                    <option value="false" ${settings.touchMode ? "" : "selected"}>Desativado</option>
+                    <option value="true" ${settings.touchMode ? "selected" : ""}>Ativado</option>
+                  </select>
+                </div>
+                <div class="field"><label>Debug</label>
+                  <select name="debug">
+                    <option value="false" ${settings.debug ? "" : "selected"}>Desativado</option>
+                    <option value="true" ${settings.debug ? "selected" : ""}>Ativado</option>
+                  </select>
+                </div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn success" type="submit">Salvar</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Backup</h3>
+              <div class="flex" style="margin-top: 12px;">
+                <button class="btn" id="backup-export">Exportar JSON completo</button>
+                <button class="btn ghost" id="backup-import">Importar JSON</button>
+              </div>
+            </div>
+          `;
+
+          container.querySelector("#settings-form").addEventListener("submit", Settings.save);
+          container.querySelector("#backup-export").addEventListener("click", Backup.exportAll);
+          container.querySelector("#backup-import").addEventListener("click", Backup.importAll);
+          return container;
+        },
+      },
+    };
+
+    const Products = {
+      async edit(product) {
+        UI.openProductModal(product.barcode || "");
+        const form = document.getElementById("product-form");
+        form.dataset.id = product.id;
+        form.name.value = product.name || "";
+        form.sku.value = product.sku || "";
+        form.barcode.value = product.barcode || "";
+        form.category.value = product.category || "";
+        form.brand.value = product.brand || "";
+        form.price.value = product.price || 0;
+        form.cost.value = product.cost || 0;
+        form.margin.value = product.margin || 0;
+        form.variants.value = JSON.stringify(product.variants || []);
+        form.supplier.value = product.supplier || "";
+        form.unit.value = product.unit || "";
+        form.status.value = product.status || "active";
+        form.notes.value = product.notes || "";
+      },
+      async remove(id) {
+        if (!confirm("Deseja excluir este produto?")) return;
+        await db.delete("products", id);
+        await Data.loadAll();
+        Router.navigate("produtos");
+      },
+      exportJSON() {
+        Utils.download("produtos.json", JSON.stringify(state.products, null, 2), "application/json");
+      },
+      exportCSV() {
+        const header = "name,sku,barcode,category,brand,price,cost,variants_json,unit,supplier,status\n";
+        const rows = state.products.map((product) => {
+          return [
+            product.name,
+            product.sku,
+            product.barcode,
+            product.category,
+            product.brand,
+            product.price,
+            product.cost,
+            JSON.stringify(product.variants || []),
+            product.unit,
+            product.supplier,
+            product.status,
+          ].map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",");
+        });
+        Utils.download("produtos.csv", header + rows.join("\n"), "text/csv");
+      },
+      downloadTemplate() {
+        const header = "name,sku,barcode,category,brand,price,cost,variants_json,unit,supplier,status\n";
+        Utils.download("template_produtos.csv", header, "text/csv");
+      },
+      importJSON() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+        input.onchange = async () => {
+          const file = input.files[0];
+          if (!file) return;
+          const content = await file.text();
+          const data = JSON.parse(content);
+          for (const product of data) {
+            await db.put("products", { ...product, id: product.id || Utils.uuid() });
+          }
+          await Data.loadAll();
+          Router.navigate("produtos");
+        };
+        input.click();
+      },
+    };
+
+    const Customers = {
+      showForm(customer = null) {
+        const card = document.getElementById("customer-form-card");
+        const form = document.getElementById("customer-form");
+        card.style.display = "block";
+        form.dataset.id = customer?.id || "";
+        form.name.value = customer?.name || "";
+        form.phone.value = customer?.phone || "";
+        form.email.value = customer?.email || "";
+        form.cpf.value = customer?.cpf || "";
+        form.birthday.value = customer?.birthday || "";
+        form.address.value = customer?.address || "";
+        form.notes.value = customer?.notes || "";
+      },
+      async edit(customer) {
+        this.showForm(customer);
+      },
+      async remove(id) {
+        if (!confirm("Deseja excluir este cliente?")) return;
+        await db.delete("customers", id);
+        await Data.loadAll();
+        Router.navigate("clientes");
+      },
+      exportJSON() {
+        Utils.download("clientes.json", JSON.stringify(state.customers, null, 2), "application/json");
+      },
+    };
+
+    const Stock = {
+      async adjustPrompt() {
+        const productName = prompt("Digite o nome do produto para ajustar:");
+        if (!productName) return;
+        const product = state.products.find((item) => item.name.toLowerCase().includes(productName.toLowerCase()));
+        if (!product) {
+          UI.toast("Produto não encontrado.");
+          return;
+        }
+        const qty = parseInt(prompt("Quantidade para ajustar (positivo/negativo):"), 10);
+        if (Number.isNaN(qty)) return;
+        if (product.variants && product.variants[0]) {
+          product.variants[0].stock += qty;
+        }
+        await db.put("products", product);
+        await db.put("movements", {
+          id: Utils.uuid(),
+          type: qty > 0 ? "entrada" : "ajuste",
+          date: new Date().toISOString(),
+          productId: product.id,
+          quantity: qty,
+          userId: state.user.id,
+          reason: "Ajuste manual",
+        });
+        await Data.loadAll();
+        Router.navigate("estoque");
+      },
+    };
+
+    const Cash = {
+      async open() {
+        const amount = Utils.parseNumber(prompt("Valor inicial de abertura:"));
+        await db.put("cash", { id: Utils.uuid(), type: "abertura", date: new Date().toISOString(), amount, method: "Dinheiro" });
+        await Data.loadAll();
+        Router.navigate("caixa");
+      },
+      async adjust(type) {
+        const amount = Utils.parseNumber(prompt("Valor:"));
+        await db.put("cash", { id: Utils.uuid(), type, date: new Date().toISOString(), amount: type === "sangria" ? -amount : amount, method: "Dinheiro" });
+        await Data.loadAll();
+        Router.navigate("caixa");
+      },
+      exportCSV() {
+        const header = "date,type,amount,method\n";
+        const rows = state.cash.map((entry) => `${entry.date},${entry.type},${entry.amount},${entry.method}`);
+        Utils.download("caixa.csv", header + rows.join("\n"), "text/csv");
+      },
+    };
+
+    const Settings = {
+      async save(event) {
+        event.preventDefault();
+        const form = event.target;
+        const updated = {
+          id: "settings",
+          storeName: form.storeName.value,
+          whatsapp: form.whatsapp.value,
+          receiptFooter: form.receiptFooter.value,
+          defaultMinStock: Utils.parseNumber(form.defaultMinStock.value),
+          taxRate: Utils.parseNumber(form.taxRate.value),
+          touchMode: form.touchMode.value === "true",
+          debug: form.debug.value === "true",
+          discountLimit: state.settings.discountLimit || { operador: 5, gerente: 15, admin: 100 },
+        };
+        await db.put("settings", updated);
+        state.settings = updated;
+        state.touch = updated.touchMode;
+        document.body.classList.toggle("touch", state.touch);
+        UI.toast("Configurações salvas.");
+      },
+    };
+
+    const Backup = {
+      async exportAll() {
+        const data = {};
+        for (const store of storeNames) {
+          data[store] = await db.getAll(store);
+        }
+        Utils.download("backup_dr_solucoes.json", JSON.stringify(data, null, 2), "application/json");
+      },
+      async importAll() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+        input.onchange = async () => {
+          const file = input.files[0];
+          if (!file) return;
+          const content = await file.text();
+          const data = JSON.parse(content);
+          const mode = confirm("Importar com replace? OK = substituir, Cancelar = mesclar.") ? "replace" : "merge";
+          for (const store of storeNames) {
+            if (mode === "replace") {
+              const existing = await db.getAll(store);
+              for (const item of existing) {
+                await db.delete(store, item.id);
+              }
+            }
+            for (const item of data[store] || []) {
+              await db.put(store, item);
+            }
+          }
+          await Data.loadAll();
+          Router.navigate("dashboard");
+        };
+        input.click();
+      },
+    };
+
+    document.getElementById("product-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const variants = form.variants.value ? JSON.parse(form.variants.value) : [];
+      const price = Utils.parseNumber(form.price.value);
+      const cost = Utils.parseNumber(form.cost.value);
+      const margin = cost ? ((price - cost) / cost) * 100 : 0;
+      const photoFile = form.photo.files[0];
+      const photo = photoFile ? await Utils.toBase64(photoFile) : null;
+      const product = {
+        id: form.dataset.id || Utils.uuid(),
+        name: form.name.value,
+        sku: form.sku.value,
+        barcode: form.barcode.value,
+        category: form.category.value,
+        brand: form.brand.value,
+        price,
+        cost,
+        margin,
+        variants,
+        unit: form.unit.value,
+        supplier: form.supplier.value,
+        status: form.status.value,
+        notes: form.notes.value,
+        photo,
+        createdAt: new Date().toISOString(),
+      };
+      await db.put("products", product);
+      await Data.loadAll();
+      UI.closeProductModal();
+      Router.navigate("produtos");
+    });
+
+    document.getElementById("customer-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const customer = {
+        id: form.dataset.id || Utils.uuid(),
+        name: form.name.value,
+        phone: form.phone.value,
+        email: form.email.value,
+        cpf: form.cpf.value,
+        birthday: form.birthday.value,
+        address: form.address.value,
+        notes: form.notes.value,
+      };
+      await db.put("customers", customer);
+      await Data.loadAll();
+      Router.navigate("clientes");
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      Auth.logout();
+      location.reload();
+    });
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      const username = document.getElementById("login-user").value;
+      const password = document.getElementById("login-pass").value;
+      const success = await Auth.login(username, password);
+      if (success) {
+        document.getElementById("login-overlay").classList.add("hidden");
+        await initApp();
+      } else {
+        UI.toast("Usuário ou senha inválidos.");
+      }
+    });
+
+    const initNavigation = () => {
+      const nav = document.getElementById("nav");
+      nav.innerHTML = "";
+      const items = [
+        { key: "dashboard", label: "Dashboard" },
+        { key: "pdv", label: "PDV / Vendas" },
+        { key: "produtos", label: "Produtos" },
+        { key: "clientes", label: "Clientes" },
+        { key: "estoque", label: "Estoque" },
+        { key: "caixa", label: "Caixa" },
+        { key: "relatorios", label: "Relatórios" },
+        { key: "config", label: "Configurações" },
+      ];
+      items.forEach((item) => {
+        if (!Permissions.can(item.key)) return;
+        const btn = document.createElement("button");
+        btn.textContent = item.label;
+        btn.dataset.view = item.key;
+        btn.addEventListener("click", () => Router.navigate(item.key));
+        nav.appendChild(btn);
+      });
+    };
+
+    const initApp = async () => {
+      await Data.loadAll();
+      document.getElementById("user-name").textContent = state.user.name;
+      document.getElementById("user-role").textContent = state.user.role.toUpperCase();
+      initNavigation();
+      document.body.classList.toggle("touch", state.settings.touchMode);
+      Router.register("dashboard", Views.dashboard);
+      Router.register("pdv", Views.pdv);
+      Router.register("produtos", Views.produtos);
+      Router.register("clientes", Views.clientes);
+      Router.register("estoque", Views.estoque);
+      Router.register("caixa", Views.caixa);
+      Router.register("relatorios", Views.relatorios);
+      Router.register("config", Views.config);
+      Router.navigate("dashboard");
+
+      document.addEventListener("keydown", (event) => {
+        if (state.currentView !== "pdv") return;
+        if (event.key === "F2") {
+          event.preventDefault();
+          document.getElementById("pdv-search")?.focus();
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          PDV.clearCart();
+        }
+        if (event.key === "F4") {
+          event.preventDefault();
+          PDV.finalizeSale();
+        }
+      });
+    };
+
+    const boot = async () => {
+      await db.open();
+      await Data.seed();
+      await Auth.restore();
+      if (state.user) {
+        document.getElementById("login-overlay").classList.add("hidden");
+        await initApp();
+      }
+    };
+
+    boot();
+  </script>
+</body>
+</html>

@@ -357,7 +357,8 @@
       </div>
       <nav id="nav"></nav>
       <div class="sidebar-footer">
-        WhatsApp: 35991617669
+        WhatsApp: 35991617669<br />
+        Desenvolvido por DR Soluções • 35991617669
       </div>
     </aside>
     <main>
@@ -392,6 +393,13 @@
       </div>
       <button class="btn" id="login-btn" style="width: 100%;">Entrar</button>
       <p class="muted" style="margin-top: 12px;">Primeiro acesso? usuário <strong>admin</strong> senha <strong>1234</strong>.</p>
+    </div>
+  </div>
+
+  <div class="login-overlay hidden" id="lock-overlay">
+    <div class="card" style="width: min(520px, 90vw); text-align: center;">
+      <h2>Teste expirado</h2>
+      <p class="muted">O período de teste terminou. Para reativar, inicie um novo teste em Configurações.</p>
     </div>
   </div>
 
@@ -663,6 +671,44 @@
         if (!id) return;
         const user = await db.get("users", id);
         if (user) state.user = user;
+      },
+      async updateCredentials(event) {
+        event.preventDefault();
+        const form = event.target;
+        const newUsername = form.newUsername.value.trim();
+        const currentPassword = form.currentPassword.value;
+        const newPassword = form.newPassword.value;
+        const confirmPassword = form.confirmPassword.value;
+        if (!newUsername) {
+          UI.toast("Informe um usuário válido.");
+          return;
+        }
+        if (newPassword && newPassword !== confirmPassword) {
+          UI.toast("A confirmação da senha não confere.");
+          return;
+        }
+        const users = await db.getAll("users");
+        const current = users.find((u) => u.id === state.user.id);
+        if (!current || current.password !== currentPassword) {
+          UI.toast("Senha atual incorreta.");
+          return;
+        }
+        const duplicate = users.find((u) => u.username === newUsername && u.id !== current.id);
+        if (duplicate) {
+          UI.toast("Usuário já está em uso.");
+          return;
+        }
+        const updated = {
+          ...current,
+          username: newUsername,
+          password: newPassword ? newPassword : current.password,
+        };
+        await db.put("users", updated);
+        state.user = updated;
+        UI.toast("Usuário e senha atualizados.");
+        form.currentPassword.value = "";
+        form.newPassword.value = "";
+        form.confirmPassword.value = "";
       },
       logout() {
         localStorage.removeItem("sessionUser");
@@ -978,11 +1024,19 @@
           storeName: "DR Soluções",
           whatsapp: "35991617669",
           receiptFooter: "Obrigado por comprar com a DR Soluções!",
+          receiptNote: "Volte sempre!",
+          receiptShowDeveloper: true,
           defaultMinStock: 3,
           discountLimit: { operador: 5, gerente: 15, admin: 100 },
           touchMode: false,
           debug: false,
           taxRate: 0,
+          themePrimary: "#2563eb",
+          themeSecondary: "#0ea5e9",
+          appTitle: "DR Soluções - PDV & Gestão",
+          sheetEndpoint: "",
+          trialActive: false,
+          trialEndsAt: null,
         });
       },
     };
@@ -1195,6 +1249,10 @@
             </div>
           `)
           .join("");
+        const devLine = state.settings.receiptShowDeveloper
+          ? `<div style="text-align:center; margin-top: 6px;">Desenvolvido por DR Soluções • 35991617669</div>`
+          : "";
+        const receiptNote = state.settings.receiptNote ? `<div style="text-align:center; margin-top: 6px;">${state.settings.receiptNote}</div>` : "";
         document.getElementById("print-area").innerHTML = `
           <h2>${storeName}</h2>
           <div class="line"><span>Venda:</span><span>${sale.id.slice(0, 6)}</span></div>
@@ -1209,7 +1267,9 @@
           <div class="line"><span>Troco:</span><span>${Utils.formatCurrency(sale.change)}</span></div>
           <hr />
           <div style="text-align:center;">${footer}</div>
+          ${receiptNote}
           <div style="text-align:center; margin-top: 6px;">WhatsApp: ${state.settings.whatsapp || "35991617669"}</div>
+          ${devLine}
           ${copy ? '<div style="text-align:center; margin-top: 6px;">2ª via</div>' : ""}
         `;
         window.print();
@@ -1713,6 +1773,13 @@
                 <div class="field"><label>Nome da loja</label><input name="storeName" value="${settings.storeName || ""}" /></div>
                 <div class="field"><label>WhatsApp</label><input name="whatsapp" value="${settings.whatsapp || ""}" /></div>
                 <div class="field"><label>Mensagem no cupom</label><input name="receiptFooter" value="${settings.receiptFooter || ""}" /></div>
+                <div class="field"><label>Mensagem extra no cupom</label><input name="receiptNote" value="${settings.receiptNote || ""}" /></div>
+                <div class="field"><label>Mostrar desenvolvedor no cupom</label>
+                  <select name="receiptShowDeveloper">
+                    <option value="true" ${settings.receiptShowDeveloper ? "selected" : ""}>Sim</option>
+                    <option value="false" ${settings.receiptShowDeveloper ? "" : "selected"}>Não</option>
+                  </select>
+                </div>
                 <div class="field"><label>Estoque mínimo padrão</label><input name="defaultMinStock" type="number" value="${settings.defaultMinStock || 3}" /></div>
                 <div class="field"><label>Taxa padrão (%)</label><input name="taxRate" type="number" value="${settings.taxRate || 0}" /></div>
                 <div class="field"><label>Modo toque</label>
@@ -1727,6 +1794,9 @@
                     <option value="true" ${settings.debug ? "selected" : ""}>Ativado</option>
                   </select>
                 </div>
+                <div class="field"><label>Título do app</label><input name="appTitle" value="${settings.appTitle || ""}" /></div>
+                <div class="field"><label>Cor primária</label><input name="themePrimary" type="color" value="${settings.themePrimary || "#2563eb"}" /></div>
+                <div class="field"><label>Cor secundária</label><input name="themeSecondary" type="color" value="${settings.themeSecondary || "#0ea5e9"}" /></div>
                 <div style="grid-column: 1/-1; display:flex; gap:12px;">
                   <button class="btn success" type="submit">Salvar</button>
                 </div>
@@ -1739,11 +1809,68 @@
                 <button class="btn ghost" id="backup-import">Importar JSON</button>
               </div>
             </div>
+            <div class="card">
+              <h3>Conta do usuário</h3>
+              <p class="muted">Troque o usuário e a senha do login atual.</p>
+              <form id="account-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Novo usuário</label><input name="newUsername" value="${state.user?.username || ""}" /></div>
+                <div class="field"><label>Senha atual</label><input name="currentPassword" type="password" /></div>
+                <div class="field"><label>Nova senha</label><input name="newPassword" type="password" /></div>
+                <div class="field"><label>Confirmar nova senha</label><input name="confirmPassword" type="password" /></div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn success" type="submit">Atualizar acesso</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Teste do aplicativo</h3>
+              <p class="muted">Defina um tempo de teste. Após expirar, todas as funções serão bloqueadas.</p>
+              <form id="trial-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Senha de teste</label><input name="trialPassword" type="password" /></div>
+                <div class="field"><label>Tempo de teste</label>
+                  <select name="trialDuration">
+                    <option value="15">15 minutos</option>
+                    <option value="30">30 minutos</option>
+                    <option value="60">1 hora</option>
+                    <option value="120">2 horas</option>
+                    <option value="240">4 horas</option>
+                  </select>
+                </div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn warning" type="submit">Iniciar teste</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Integração Google Sheets</h3>
+              <p class="muted">Use uma URL de Web App do Google Apps Script para sincronizar dados.</p>
+              <div class="field">
+                <label>Endpoint Apps Script</label>
+                <input name="sheetEndpoint" id="sheet-endpoint" value="${settings.sheetEndpoint || ""}" placeholder="https://script.google.com/macros/s/..." />
+              </div>
+              <div class="flex" style="margin-top: 12px;">
+                <button class="btn" id="sheet-export">Enviar dados</button>
+                <button class="btn ghost" id="sheet-import">Importar dados</button>
+              </div>
+              <div class="card" style="box-shadow:none; border:1px solid #e2e8f0; margin-top: 12px;">
+                <strong>Modelo de abas</strong>
+                <div class="muted">products | customers | sales | cash | movements | users | settings</div>
+                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
+              </div>
+            </div>
           `;
 
           container.querySelector("#settings-form").addEventListener("submit", Settings.save);
           container.querySelector("#backup-export").addEventListener("click", Backup.exportAll);
           container.querySelector("#backup-import").addEventListener("click", Backup.importAll);
+          container.querySelector("#account-form").addEventListener("submit", Auth.updateCredentials);
+          container.querySelector("#trial-form").addEventListener("submit", Trial.start);
+          container.querySelector("#sheet-export").addEventListener("click", Sheets.exportAll);
+          container.querySelector("#sheet-import").addEventListener("click", Sheets.importAll);
+          container.querySelector("#sheet-endpoint").addEventListener("change", (event) => {
+            state.settings.sheetEndpoint = event.target.value;
+            db.put("settings", { ...state.settings, sheetEndpoint: event.target.value });
+          });
           return container;
         },
       },
@@ -1905,20 +2032,287 @@
           storeName: form.storeName.value,
           whatsapp: form.whatsapp.value,
           receiptFooter: form.receiptFooter.value,
+          receiptNote: form.receiptNote.value,
+          receiptShowDeveloper: form.receiptShowDeveloper.value === "true",
           defaultMinStock: Utils.parseNumber(form.defaultMinStock.value),
           taxRate: Utils.parseNumber(form.taxRate.value),
           touchMode: form.touchMode.value === "true",
           debug: form.debug.value === "true",
           discountLimit: state.settings.discountLimit || { operador: 5, gerente: 15, admin: 100 },
+          themePrimary: form.themePrimary.value,
+          themeSecondary: form.themeSecondary.value,
+          appTitle: form.appTitle.value,
+          sheetEndpoint: state.settings.sheetEndpoint || "",
         };
         await db.put("settings", updated);
         state.settings = updated;
         state.touch = updated.touchMode;
         document.body.classList.toggle("touch", state.touch);
+        Theme.apply();
         UI.toast("Configurações salvas.");
       },
     };
 
+    const Theme = {
+      apply() {
+        const root = document.documentElement;
+        root.style.setProperty("--accent", state.settings.themePrimary || "#2563eb");
+        root.style.setProperty("--accent-2", state.settings.themeSecondary || "#0ea5e9");
+        const title = document.querySelector("title");
+        if (title && state.settings.appTitle) title.textContent = state.settings.appTitle;
+      },
+    };
+
+    const Trial = {
+      password: "dr397210",
+      isLocked() {
+        return state.settings.trialActive && state.settings.trialEndsAt && Date.now() > state.settings.trialEndsAt;
+      },
+      async start(event) {
+        event.preventDefault();
+        const form = event.target;
+        const password = form.trialPassword.value;
+        const minutes = parseInt(form.trialDuration.value, 10);
+        if (password !== Trial.password) {
+          UI.toast("Senha de teste inválida.");
+          return;
+        }
+        const endsAt = Date.now() + minutes * 60 * 1000;
+        state.settings.trialActive = true;
+        state.settings.trialEndsAt = endsAt;
+        await db.put("settings", { ...state.settings });
+        Trial.unlock();
+        UI.toast("Teste iniciado.");
+        form.trialPassword.value = "";
+      },
+      lock() {
+        document.getElementById("lock-overlay").classList.remove("hidden");
+      },
+      unlock() {
+        document.getElementById("lock-overlay").classList.add("hidden");
+      },
+      check() {
+        if (Trial.isLocked()) {
+          Trial.lock();
+        } else {
+          Trial.unlock();
+        }
+      },
+    };
+
+    const Sheets = {
+      columns: {
+        products: [
+          "id",
+          "name",
+          "sku",
+          "barcode",
+          "category",
+          "brand",
+          "price",
+          "cost",
+          "margin",
+          "variants_json",
+          "unit",
+          "supplier",
+          "status",
+          "notes",
+          "photo",
+          "createdAt",
+        ],
+        customers: [
+          "id",
+          "name",
+          "phone",
+          "email",
+          "cpf",
+          "birthday",
+          "address",
+          "notes",
+        ],
+        sales: [
+          "id",
+          "date",
+          "userId",
+          "userName",
+          "items_json",
+          "totals_json",
+          "paymentMethod",
+          "paid",
+          "change",
+          "customerId",
+        ],
+        cash: [
+          "id",
+          "type",
+          "date",
+          "amount",
+          "method",
+          "saleId",
+        ],
+        movements: [
+          "id",
+          "type",
+          "date",
+          "productId",
+          "quantity",
+          "userId",
+          "reason",
+        ],
+        users: ["id", "username", "password", "role", "name"],
+        settings: [
+          "id",
+          "storeName",
+          "whatsapp",
+          "receiptFooter",
+          "receiptNote",
+          "receiptShowDeveloper",
+          "defaultMinStock",
+          "discountLimit_json",
+          "touchMode",
+          "debug",
+          "taxRate",
+          "themePrimary",
+          "themeSecondary",
+          "appTitle",
+          "sheetEndpoint",
+          "trialActive",
+          "trialEndsAt",
+        ],
+      },
+      serialize(store, item) {
+        if (store === "products") {
+          return {
+            id: item.id,
+            name: item.name,
+            sku: item.sku,
+            barcode: item.barcode,
+            category: item.category,
+            brand: item.brand,
+            price: item.price,
+            cost: item.cost,
+            margin: item.margin,
+            variants_json: JSON.stringify(item.variants || []),
+            unit: item.unit,
+            supplier: item.supplier,
+            status: item.status,
+            notes: item.notes,
+            photo: item.photo,
+            createdAt: item.createdAt,
+          };
+        }
+        if (store === "sales") {
+          return {
+            id: item.id,
+            date: item.date,
+            userId: item.userId,
+            userName: item.userName,
+            items_json: JSON.stringify(item.items || []),
+            totals_json: JSON.stringify(item.totals || {}),
+            paymentMethod: item.paymentMethod,
+            paid: item.paid,
+            change: item.change,
+            customerId: item.customerId,
+          };
+        }
+        if (store === "settings") {
+          return {
+            id: item.id,
+            storeName: item.storeName,
+            whatsapp: item.whatsapp,
+            receiptFooter: item.receiptFooter,
+            receiptNote: item.receiptNote,
+            receiptShowDeveloper: item.receiptShowDeveloper,
+            defaultMinStock: item.defaultMinStock,
+            discountLimit_json: JSON.stringify(item.discountLimit || {}),
+            touchMode: item.touchMode,
+            debug: item.debug,
+            taxRate: item.taxRate,
+            themePrimary: item.themePrimary,
+            themeSecondary: item.themeSecondary,
+            appTitle: item.appTitle,
+            sheetEndpoint: item.sheetEndpoint,
+            trialActive: item.trialActive,
+            trialEndsAt: item.trialEndsAt,
+          };
+        }
+        return { ...item };
+      },
+      deserialize(store, item) {
+        if (store === "products") {
+          return {
+            ...item,
+            variants: item.variants_json ? JSON.parse(item.variants_json) : item.variants || [],
+          };
+        }
+        if (store === "sales") {
+          return {
+            ...item,
+            items: item.items_json ? JSON.parse(item.items_json) : item.items || [],
+            totals: item.totals_json ? JSON.parse(item.totals_json) : item.totals || {},
+          };
+        }
+        if (store === "settings") {
+          return {
+            ...item,
+            discountLimit: item.discountLimit_json
+              ? JSON.parse(item.discountLimit_json)
+              : item.discountLimit || { operador: 5, gerente: 15, admin: 100 },
+          };
+        }
+        return item;
+      },
+      async exportAll() {
+        if (!state.settings.sheetEndpoint) {
+          UI.toast("Informe o endpoint do Google Sheets.");
+          return;
+        }
+        const payload = {};
+        for (const store of storeNames) {
+          const data = await db.getAll(store);
+          payload[store] = data.map((item) => this.serialize(store, item));
+        }
+        try {
+          const response = await fetch(state.settings.sheetEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "export", payload, columns: this.columns }),
+          });
+          if (response.ok) {
+            UI.toast("Dados enviados para o Google Sheets.");
+          } else {
+            UI.toast("Falha ao enviar dados.");
+          }
+        } catch (error) {
+          UI.toast("Erro de conexão com o Google Sheets.");
+        }
+      },
+      async importAll() {
+        if (!state.settings.sheetEndpoint) {
+          UI.toast("Informe o endpoint do Google Sheets.");
+          return;
+        }
+        try {
+          const response = await fetch(`${state.settings.sheetEndpoint}?action=import`);
+          if (!response.ok) {
+            UI.toast("Falha ao importar dados.");
+            return;
+          }
+          const data = await response.json();
+          for (const store of storeNames) {
+            for (const item of data[store] || []) {
+              const normalized = this.deserialize(store, item);
+              await db.put(store, normalized);
+            }
+          }
+          await Data.loadAll();
+          Router.navigate("dashboard");
+          UI.toast("Dados importados do Google Sheets.");
+        } catch (error) {
+          UI.toast("Erro de conexão com o Google Sheets.");
+        }
+      },
+    };
     const Backup = {
       async exportAll() {
         const data = {};
@@ -2052,6 +2446,9 @@
       document.getElementById("user-role").textContent = state.user.role.toUpperCase();
       initNavigation();
       document.body.classList.toggle("touch", state.settings.touchMode);
+      Theme.apply();
+      Trial.check();
+      setInterval(Trial.check, 1000);
       Router.register("dashboard", Views.dashboard);
       Router.register("pdv", Views.pdv);
       Router.register("produtos", Views.produtos);
@@ -2060,7 +2457,11 @@
       Router.register("caixa", Views.caixa);
       Router.register("relatorios", Views.relatorios);
       Router.register("config", Views.config);
-      Router.navigate("dashboard");
+      if (!Trial.isLocked()) {
+        Router.navigate("dashboard");
+      } else {
+        Trial.lock();
+      }
 
       document.addEventListener("keydown", (event) => {
         if (state.currentView !== "pdv") return;

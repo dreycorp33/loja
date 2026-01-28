@@ -368,7 +368,6 @@
           <div class="muted" id="header-subtitle">Visão geral da loja</div>
         </div>
         <div class="user">
-          <span class="badge" id="trial-timer" style="display: none;"></span>
           <span id="user-role">-</span>
           <div>
             <div id="user-name">-</div>
@@ -1024,12 +1023,6 @@
           id: "settings",
           storeName: "DR Soluções",
           storeCnpj: "",
-          storePhone: "",
-          storeEmail: "",
-          storeAddress: "",
-          storeCity: "",
-          storeState: "",
-          storeCep: "",
           whatsapp: "35991617669",
           receiptFooter: "Obrigado por comprar com a DR Soluções!",
           receiptNote: "Volte sempre!",
@@ -1249,16 +1242,7 @@
         const sale = state.lastReceipt;
         const storeName = state.settings.storeName || "DR Soluções";
         const footer = state.settings.receiptFooter || "Obrigado pela preferência";
-        const storeMeta = [
-          state.settings.storeCnpj ? `CNPJ: ${state.settings.storeCnpj}` : "",
-          state.settings.storeAddress ? state.settings.storeAddress : "",
-          state.settings.storeCity || state.settings.storeState
-            ? `${state.settings.storeCity || ""}${state.settings.storeCity && state.settings.storeState ? " - " : ""}${state.settings.storeState || ""}`
-            : "",
-          state.settings.storeCep ? `CEP: ${state.settings.storeCep}` : "",
-          state.settings.storePhone ? `Tel: ${state.settings.storePhone}` : "",
-          state.settings.storeEmail ? state.settings.storeEmail : "",
-        ].filter(Boolean).join("<br />");
+        const storeMeta = state.settings.storeCnpj ? `CNPJ: ${state.settings.storeCnpj}` : "";
         const itemsHtml = sale.items
           .map((item) => `
             <div>
@@ -1791,12 +1775,6 @@
               <form id="settings-form" class="grid grid-2" style="margin-top: 12px;">
                 <div class="field"><label>Nome da loja</label><input name="storeName" value="${settings.storeName || ""}" /></div>
                 <div class="field"><label>CNPJ</label><input name="storeCnpj" value="${settings.storeCnpj || ""}" /></div>
-                <div class="field"><label>Telefone</label><input name="storePhone" value="${settings.storePhone || ""}" /></div>
-                <div class="field"><label>Email</label><input name="storeEmail" type="email" value="${settings.storeEmail || ""}" /></div>
-                <div class="field"><label>Endereço</label><input name="storeAddress" value="${settings.storeAddress || ""}" /></div>
-                <div class="field"><label>Cidade</label><input name="storeCity" value="${settings.storeCity || ""}" /></div>
-                <div class="field"><label>Estado</label><input name="storeState" value="${settings.storeState || ""}" /></div>
-                <div class="field"><label>CEP</label><input name="storeCep" value="${settings.storeCep || ""}" /></div>
                 <div class="field"><label>WhatsApp</label><input name="whatsapp" value="${settings.whatsapp || ""}" /></div>
                 <div class="field"><label>Mensagem no cupom</label><input name="receiptFooter" value="${settings.receiptFooter || ""}" /></div>
                 <div class="field"><label>Mensagem extra no cupom</label><input name="receiptNote" value="${settings.receiptNote || ""}" /></div>
@@ -1881,7 +1859,7 @@
               <div class="card" style="box-shadow:none; border:1px solid #e2e8f0; margin-top: 12px;">
                 <strong>Modelo de abas</strong>
                 <div class="muted">products | customers | sales | cash | movements | users | settings</div>
-                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,storePhone,storeEmail,storeAddress,storeCity,storeState,storeCep,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
+                <pre style="white-space: pre-wrap; margin-top: 8px;">id,name,sku,barcode,category,brand,price,cost,margin,variants_json,unit,supplier,status,notes,photo,createdAt\nid,name,phone,email,cpf,birthday,address,notes\nid,date,userId,userName,items_json,totals_json,paymentMethod,paid,change,customerId\nid,type,date,amount,method,saleId\nid,type,date,productId,quantity,userId,reason\nid,username,password,role,name\nid,storeName,storeCnpj,whatsapp,receiptFooter,receiptNote,receiptShowDeveloper,defaultMinStock,discountLimit_json,touchMode,debug,taxRate,themePrimary,themeSecondary,appTitle,sheetEndpoint,trialActive,trialEndsAt</pre>
               </div>
             </div>
           `;
@@ -2057,12 +2035,6 @@
           id: "settings",
           storeName: form.storeName.value,
           storeCnpj: form.storeCnpj.value,
-          storePhone: form.storePhone.value,
-          storeEmail: form.storeEmail.value,
-          storeAddress: form.storeAddress.value,
-          storeCity: form.storeCity.value,
-          storeState: form.storeState.value,
-          storeCep: form.storeCep.value,
           whatsapp: form.whatsapp.value,
           receiptFooter: form.receiptFooter.value,
           receiptNote: form.receiptNote.value,
@@ -2135,24 +2107,10 @@
         document.getElementById("lock-overlay").classList.add("hidden");
       },
       check() {
-        const timer = document.getElementById("trial-timer");
         if (Trial.isLocked()) {
           Trial.lock();
-          if (timer) {
-            timer.style.display = "inline-flex";
-            timer.textContent = "Teste expirado";
-          }
         } else {
           Trial.unlock();
-          if (timer) {
-            if (state.settings.trialActive && state.settings.trialEndsAt) {
-              const remaining = state.settings.trialEndsAt - Date.now();
-              timer.style.display = "inline-flex";
-              timer.textContent = `Teste: ${Trial.formatRemaining(remaining)}`;
-            } else {
-              timer.style.display = "none";
-            }
-          }
         }
       },
     };
@@ -2221,12 +2179,6 @@
           "id",
           "storeName",
           "storeCnpj",
-          "storePhone",
-          "storeEmail",
-          "storeAddress",
-          "storeCity",
-          "storeState",
-          "storeCep",
           "whatsapp",
           "receiptFooter",
           "receiptNote",
@@ -2284,12 +2236,6 @@
             id: item.id,
             storeName: item.storeName,
             storeCnpj: item.storeCnpj,
-            storePhone: item.storePhone,
-            storeEmail: item.storeEmail,
-            storeAddress: item.storeAddress,
-            storeCity: item.storeCity,
-            storeState: item.storeState,
-            storeCep: item.storeCep,
             whatsapp: item.whatsapp,
             receiptFooter: item.receiptFooter,
             receiptNote: item.receiptNote,

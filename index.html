@@ -223,6 +223,41 @@
       background: #e2e8f0;
     }
 
+    .user-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+    }
+
+    .user-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .user-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .user-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #0f172a;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 999px;
+      align-self: flex-start;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -688,15 +723,38 @@
     };
 
     const Auth = {
+      async hashPassword(password) {
+        const data = new TextEncoder().encode(password);
+        const digest = await crypto.subtle.digest("SHA-256", data);
+        const hash = Array.from(new Uint8Array(digest))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+        return `sha256:${hash}`;
+      },
+      async verifyPassword(user, password) {
+        if (!user?.password) return false;
+        if (user.password.startsWith("sha256:")) {
+          const hashed = await this.hashPassword(password);
+          return hashed === user.password;
+        }
+        return user.password === password;
+      },
+      async upgradePasswordIfNeeded(user, password) {
+        if (!user || user.password.startsWith("sha256:")) return user;
+        if (user.password !== password) return user;
+        const updated = { ...user, password: await this.hashPassword(password) };
+        await db.put("users", updated);
+        return updated;
+      },
       async login(username, password) {
         const users = await db.getAll("users");
-        const user = users.find((u) => u.username === username && u.password === password);
-        if (user) {
-          state.user = user;
-          localStorage.setItem("sessionUser", user.id);
-          return true;
-        }
-        return false;
+        const user = users.find((u) => u.username === username);
+        if (!user) return false;
+        const verified = await this.verifyPassword(user, password);
+        if (!verified) return false;
+        state.user = await this.upgradePasswordIfNeeded(user, password);
+        localStorage.setItem("sessionUser", state.user.id);
+        return true;
       },
       async restore() {
         const id = localStorage.getItem("sessionUser");
@@ -721,7 +779,7 @@
         }
         const users = await db.getAll("users");
         const current = users.find((u) => u.id === state.user.id);
-        if (!current || current.password !== currentPassword) {
+        if (!current || !(await this.verifyPassword(current, currentPassword))) {
           UI.toast("Senha atual incorreta.");
           return;
         }
@@ -733,7 +791,7 @@
         const updated = {
           ...current,
           username: newUsername,
-          password: newPassword ? newPassword : current.password,
+          password: newPassword ? await this.hashPassword(newPassword) : current.password,
         };
         await db.put("users", updated);
         state.user = updated;
@@ -745,6 +803,119 @@
       logout() {
         localStorage.removeItem("sessionUser");
         state.user = null;
+      },
+    };
+
+    const Users = {
+      async renderList() {
+        const list = document.getElementById("users-list");
+        if (!list) return;
+        const users = await db.getAll("users");
+        if (!users.length) {
+          list.innerHTML = "<p class=\"muted\">Nenhum usuário cadastrado.</p>";
+          return;
+        }
+        const sorted = users.slice().sort((a, b) => a.username.localeCompare(b.username));
+        list.innerHTML = sorted.map((user) => `
+          <div class="user-row">
+            <div class="user-meta">
+              <strong>${user.name || user.username}</strong>
+              <span class="muted">${user.username}</span>
+              <span class="user-tag">${user.role}</span>
+            </div>
+            <div class="user-actions">
+              <button class="btn ghost" type="button" data-action="reset-user" data-id="${user.id}">Resetar senha</button>
+              <button class="btn danger" type="button" data-action="remove-user" data-id="${user.id}">Remover</button>
+            </div>
+          </div>
+        `).join("");
+      },
+      async create(event) {
+        event.preventDefault();
+        if (state.user.role !== "admin") {
+          UI.toast("Apenas administradores podem criar usuários.");
+          return;
+        }
+        const form = event.target;
+        const name = form.name.value.trim();
+        const username = form.username.value.trim();
+        const password = form.password.value;
+        const role = form.role.value;
+        if (!username) {
+          UI.toast("Informe um usuário válido.");
+          return;
+        }
+        if (!password || password.length < 6) {
+          UI.toast("A senha precisa ter ao menos 6 caracteres.");
+          return;
+        }
+        const users = await db.getAll("users");
+        if (users.some((user) => user.username === username)) {
+          UI.toast("Usuário já está em uso.");
+          return;
+        }
+        const created = {
+          id: Utils.uuid(),
+          username,
+          name: name || username,
+          role,
+          password: await Auth.hashPassword(password),
+        };
+        await db.put("users", created);
+        form.reset();
+        UI.toast("Usuário criado com sucesso.");
+        await this.renderList();
+      },
+      async resetPassword(id) {
+        if (state.user.role !== "admin") {
+          UI.toast("Apenas administradores podem resetar senhas.");
+          return;
+        }
+        if (id === state.user.id) {
+          UI.toast("Use a seção de conta para alterar sua senha.");
+          return;
+        }
+        const newPassword = prompt("Informe a nova senha (mín. 6 caracteres):");
+        if (!newPassword || newPassword.length < 6) {
+          UI.toast("Senha inválida.");
+          return;
+        }
+        const user = await db.get("users", id);
+        if (!user) return;
+        await db.put("users", { ...user, password: await Auth.hashPassword(newPassword) });
+        UI.toast("Senha resetada.");
+      },
+      async remove(id) {
+        if (state.user.role !== "admin") {
+          UI.toast("Apenas administradores podem remover usuários.");
+          return;
+        }
+        if (id === state.user.id) {
+          UI.toast("Não é possível remover o usuário atual.");
+          return;
+        }
+        if (!confirm("Deseja remover este usuário?")) return;
+        await db.delete("users", id);
+        await this.renderList();
+        UI.toast("Usuário removido.");
+      },
+      bindAdminPanel(container) {
+        const form = container.querySelector("#users-form");
+        const list = container.querySelector("#users-list");
+        if (!form || !list) return;
+        form.addEventListener("submit", (event) => this.create(event));
+        list.addEventListener("click", (event) => {
+          const action = event.target?.dataset?.action;
+          const id = event.target?.dataset?.id;
+          if (!action || !id) return;
+          if (action === "remove-user") {
+            this.remove(id);
+          }
+          if (action === "reset-user") {
+            this.resetPassword(id);
+          }
+        });
+        this.renderList();
       },
     };
 
@@ -1044,10 +1215,11 @@
           { id: Utils.uuid(), name: "Marcos Santos", phone: "35999990004", email: "marcos@email.com", cpf: "", birthday: "1982-09-02", address: "Rua D, 55", notes: "" },
           { id: Utils.uuid(), name: "Patricia Alves", phone: "35999990005", email: "patricia@email.com", cpf: "", birthday: "1993-01-30", address: "Rua E, 88", notes: "" },
         ];
+        const defaultPassword = await Auth.hashPassword("1234");
         const users = [
-          { id: Utils.uuid(), username: "admin", password: "1234", role: "admin", name: "Administrador" },
-          { id: Utils.uuid(), username: "gerente", password: "1234", role: "gerente", name: "Gerente" },
-          { id: Utils.uuid(), username: "operador", password: "1234", role: "operador", name: "Operador" },
+          { id: Utils.uuid(), username: "admin", password: defaultPassword, role: "admin", name: "Administrador" },
+          { id: Utils.uuid(), username: "gerente", password: defaultPassword, role: "gerente", name: "Gerente" },
+          { id: Utils.uuid(), username: "operador", password: defaultPassword, role: "operador", name: "Operador" },
         ];
         for (const product of sampleProducts) await db.put("products", product);
         for (const customer of sampleCustomers) await db.put("customers", customer);
@@ -1809,6 +1981,35 @@
           const container = document.createElement("div");
           container.className = "grid";
           const settings = state.settings;
+          const userAdminCard = state.user?.role === "admin"
+            ? `
+            <div class="card">
+              <h3>Usuários e permissões</h3>
+              <p class="muted">Crie usuários com diferentes níveis de acesso.</p>
+              <form id="users-form" class="grid grid-2" style="margin-top: 12px;">
+                <div class="field"><label>Nome</label><input name="name" placeholder="Nome completo" /></div>
+                <div class="field"><label>Usuário</label><input name="username" placeholder="login" /></div>
+                <div class="field"><label>Senha</label><input name="password" type="password" placeholder="mín. 6 caracteres" /></div>
+                <div class="field"><label>Tipo de acesso</label>
+                  <select name="role">
+                    <option value="operador">Operador</option>
+                    <option value="gerente">Gerente</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+                <div style="grid-column: 1/-1; display:flex; gap:12px;">
+                  <button class="btn success" type="submit">Criar usuário</button>
+                </div>
+              </form>
+              <div id="users-list" class="grid" style="margin-top: 12px; gap: 10px;"></div>
+            </div>
+            `
+            : `
+            <div class="card">
+              <h3>Usuários e permissões</h3>
+              <p class="muted">Somente administradores podem criar usuários e definir permissões.</p>
+            </div>
+            `;
           container.innerHTML = `
             <div class="card">
               <h3>Dados da loja</h3>
@@ -1887,6 +2088,7 @@
                 </div>
               </form>
             </div>
+            ${userAdminCard}
             <div class="card">
               <h3>Teste do aplicativo</h3>
               <p class="muted">Defina um tempo de teste. Após expirar, todas as funções serão bloqueadas.</p>
@@ -1932,6 +2134,7 @@
           container.querySelector("#trial-form").addEventListener("submit", Trial.start);
           container.querySelector("#sheet-export").addEventListener("click", Sheets.exportAll);
           container.querySelector("#sheet-import").addEventListener("click", Sheets.importAll);
+          Users.bindAdminPanel(container);
           container.querySelector("#sheet-endpoint").addEventListener("change", (event) => {
             state.settings.sheetEndpoint = event.target.value;
             db.put("settings", { ...state.settings, sheetEndpoint: event.target.value });

@@ -8,6 +8,7 @@ WebApp offline-first para loja de roupas, rodando apenas com `index.html` (sem b
 2. Primeiro acesso: usuário `admin` senha `1234`.
 3. Use o menu lateral para navegar entre PDV, Produtos, Clientes, Estoque, Caixa, Relatórios e Configurações.
 4. O manual em PDF e a apresentação estão em `docs/manual.pdf` e `docs/apresentacao.pdf`.
+5. Em **Configurações > Dados da loja**, é possível ativar uma marca d'água com a logo.
 
 ## Impressão 80mm
 

@@ -7,6 +7,7 @@ Manual de Utilizacao - DR Solucoes
 2. Cadastro da Loja
 - Preencha Nome da loja e CNPJ em Configuracoes > Dados da loja
 - O CNPJ aparece no cupom impresso
+- Envie a logo e ative a marca d'agua em Configuracoes > Dados da loja
 
 3. PDV / Vendas
 - Busque produtos por nome, SKU ou codigo de barras

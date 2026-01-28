@@ -20,3 +20,4 @@ Offline & Integracoes
 - IndexedDB
 - Backup JSON
 - Google Sheets
+- Marca d'agua com logo

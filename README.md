@@ -19,6 +19,23 @@ WebApp offline-first para loja de roupas, rodando apenas com `index.html` (sem b
 * **USB**: o leitor atua como teclado. Basta focar o campo de busca no PDV.
 * **Câmera**: clique em **Ler câmera** (usa BarcodeDetector API, se suportada pelo navegador).
 
+## Publicação no Netlify
+
+> Observação: eu não consigo publicar diretamente sem acesso à sua conta. Abaixo estão os passos manuais.
+
+### Opção 1: Drag & Drop
+1. Acesse https://app.netlify.com/drop
+2. Arraste a pasta do projeto (com `index.html`) para a área de upload.
+3. Após a publicação, a URL ficará disponível no painel.
+
+### Opção 2: Git (recomendado)
+1. Faça push deste repositório para o GitHub/GitLab/Bitbucket.
+2. No Netlify: **New site from Git**.
+3. Selecione o repositório e confirme as opções.
+4. Configuração padrão:
+   - **Build command**: (vazio)
+   - **Publish directory**: `.`
+
 ## Backup e restauração
 
 * Vá em **Configurações > Backup**.

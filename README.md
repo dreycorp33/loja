@@ -13,6 +13,7 @@ WebApp offline-first para loja de roupas, rodando apenas com `index.html` (sem b
 * O cupom é impresso via `window.print()`.
 * Clique em **Imprimir cupom** após finalizar a venda.
 * Garanta que a impressora térmica esteja configurada para **80mm** no sistema.
+* O CNPJ informado em **Configurações > Dados da loja** aparece no cupom.
 
 ## Leitor de código de barras
 

@@ -828,6 +828,7 @@
         state.cash = cash;
         state.movements = movements;
         state.settings = settings[0] || {};
+        Preferences.apply();
       },
       async seed() {
         const products = await db.getAll("products");
@@ -2147,7 +2148,35 @@
         document.body.classList.toggle("touch", state.touch);
         Theme.apply();
         Watermark.apply();
+        Preferences.save();
         UI.toast("Configurações salvas.");
+      },
+    };
+
+    const Preferences = {
+      key: "dr_solucoes_preferences",
+      save() {
+        const prefs = {
+          touchMode: state.settings.touchMode,
+          themePrimary: state.settings.themePrimary,
+          themeSecondary: state.settings.themeSecondary,
+          appTitle: state.settings.appTitle,
+          watermarkEnabled: state.settings.watermarkEnabled,
+          watermarkOpacity: state.settings.watermarkOpacity,
+        };
+        localStorage.setItem(this.key, JSON.stringify(prefs));
+      },
+      load() {
+        try {
+          const raw = localStorage.getItem(this.key);
+          return raw ? JSON.parse(raw) : {};
+        } catch (error) {
+          return {};
+        }
+      },
+      apply() {
+        const prefs = this.load();
+        state.settings = { ...state.settings, ...prefs };
       },
     };
 

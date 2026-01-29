@@ -2085,9 +2085,11 @@
               <p class="muted">Use uma URL de Web App do Google Apps Script para sincronizar dados.</p>
               <div class="field">
                 <label>Endpoint Apps Script</label>
-                <input name="sheetEndpoint" id="sheet-endpoint" value="${settings.sheetEndpoint || ""}" placeholder="https://script.google.com/macros/s/..." />
+                <input name="sheetEndpoint" id="sheet-endpoint" value="${settings.sheetEndpoint || ""}" placeholder="https://script.google.com/macros/s/.../exec" />
+                <small class="muted">Cole a URL publicada do Apps Script (termina em <strong>/exec</strong>).</small>
               </div>
               <div class="flex" style="margin-top: 12px;">
+                <button class="btn ghost" id="sheet-ping">Testar conexão</button>
                 <button class="btn" id="sheet-export">Enviar dados</button>
                 <button class="btn ghost" id="sheet-import">Importar dados</button>
               </div>
@@ -2105,10 +2107,13 @@
           container.querySelector("#account-form").addEventListener("submit", Auth.updateCredentials);
           container.querySelector("#sheet-export").addEventListener("click", Sheets.exportAll);
           container.querySelector("#sheet-import").addEventListener("click", Sheets.importAll);
+          container.querySelector("#sheet-ping").addEventListener("click", Sheets.ping);
           Users.bindAdminPanel(container);
           container.querySelector("#sheet-endpoint").addEventListener("change", (event) => {
-            state.settings.sheetEndpoint = event.target.value;
-            db.put("settings", { ...state.settings, sheetEndpoint: event.target.value });
+            const normalized = Sheets.normalizeEndpoint(event.target.value);
+            event.target.value = normalized;
+            state.settings.sheetEndpoint = normalized;
+            db.put("settings", { ...state.settings, sheetEndpoint: normalized });
           });
           return container;
         },
@@ -2322,7 +2327,7 @@
           themePrimary: form.themePrimary.value,
           themeSecondary: form.themeSecondary.value,
           appTitle: form.appTitle.value,
-          sheetEndpoint: state.settings.sheetEndpoint || "",
+          sheetEndpoint: Sheets.normalizeEndpoint(state.settings.sheetEndpoint || ""),
         };
         const logoFile = form.storeLogo.files[0];
         if (logoFile) {
@@ -2400,6 +2405,51 @@
     };
 
     const Sheets = {
+      normalizeEndpoint(value) {
+        return String(value || "").trim().replace(/\/+$/, "");
+      },
+      getEndpoint() {
+        const endpoint = this.normalizeEndpoint(state.settings.sheetEndpoint);
+        if (!endpoint) {
+          UI.toast("Informe o endpoint do Google Sheets.");
+          return null;
+        }
+        if (!/^https?:\/\//.test(endpoint)) {
+          UI.toast("Endpoint inválido. Use uma URL completa.");
+          return null;
+        }
+        state.settings.sheetEndpoint = endpoint;
+        return endpoint;
+      },
+      async fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          return await fetch(url, { ...options, signal: controller.signal });
+        } finally {
+          clearTimeout(timeout);
+        }
+      },
+      async readError(response) {
+        try {
+          const text = await response.text();
+          return text ? ` ${text.slice(0, 160)}` : "";
+        } catch (error) {
+          return "";
+        }
+      },
+      setButtonState(id, disabled, label) {
+        const button = document.getElementById(id);
+        if (!button) return;
+        if (disabled) {
+          button.dataset.label = button.dataset.label || button.textContent;
+          if (label) button.textContent = label;
+        } else if (button.dataset.label) {
+          button.textContent = button.dataset.label;
+          delete button.dataset.label;
+        }
+        button.disabled = disabled;
+      },
       columns: {
         products: [
           "id",
@@ -2568,17 +2618,18 @@
         return item;
       },
       async exportAll() {
-        if (!state.settings.sheetEndpoint) {
-          UI.toast("Informe o endpoint do Google Sheets.");
-          return;
-        }
+        const endpoint = this.getEndpoint();
+        if (!endpoint) return;
         const payload = {};
         for (const store of storeNames) {
           const data = await db.getAll(store);
           payload[store] = data.map((item) => this.serialize(store, item));
         }
+        this.setButtonState("sheet-export", true, "Enviando...");
+        this.setButtonState("sheet-import", true);
+        this.setButtonState("sheet-ping", true);
         try {
-          const response = await fetch(state.settings.sheetEndpoint, {
+          const response = await this.fetchWithTimeout(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "export", payload, columns: this.columns }),
@@ -2586,24 +2637,37 @@
           if (response.ok) {
             UI.toast("Dados enviados para o Google Sheets.");
           } else {
-            UI.toast("Falha ao enviar dados.");
+            const details = await this.readError(response);
+            UI.toast(`Falha ao enviar dados (${response.status}).${details}`);
           }
         } catch (error) {
-          UI.toast("Erro de conexão com o Google Sheets.");
+          UI.toast(error.name === "AbortError" ? "Tempo limite ao enviar dados." : "Erro de conexão com o Google Sheets.");
+        } finally {
+          this.setButtonState("sheet-export", false);
+          this.setButtonState("sheet-import", false);
+          this.setButtonState("sheet-ping", false);
         }
       },
       async importAll() {
-        if (!state.settings.sheetEndpoint) {
-          UI.toast("Informe o endpoint do Google Sheets.");
-          return;
-        }
+        const endpoint = this.getEndpoint();
+        if (!endpoint) return;
+        this.setButtonState("sheet-import", true, "Importando...");
+        this.setButtonState("sheet-export", true);
+        this.setButtonState("sheet-ping", true);
         try {
-          const response = await fetch(`${state.settings.sheetEndpoint}?action=import`);
+          const response = await this.fetchWithTimeout(`${endpoint}?action=import`);
           if (!response.ok) {
-            UI.toast("Falha ao importar dados.");
+            const details = await this.readError(response);
+            UI.toast(`Falha ao importar dados (${response.status}).${details}`);
             return;
           }
-          const data = await response.json();
+          let data = null;
+          try {
+            data = await response.json();
+          } catch (error) {
+            UI.toast("Resposta inválida do Google Sheets.");
+            return;
+          }
           for (const store of storeNames) {
             for (const item of data[store] || []) {
               const normalized = this.deserialize(store, item);
@@ -2614,7 +2678,29 @@
           Router.navigate("dashboard");
           UI.toast("Dados importados do Google Sheets.");
         } catch (error) {
-          UI.toast("Erro de conexão com o Google Sheets.");
+          UI.toast(error.name === "AbortError" ? "Tempo limite ao importar dados." : "Erro de conexão com o Google Sheets.");
+        } finally {
+          this.setButtonState("sheet-import", false);
+          this.setButtonState("sheet-export", false);
+          this.setButtonState("sheet-ping", false);
+        }
+      },
+      async ping() {
+        const endpoint = this.getEndpoint();
+        if (!endpoint) return;
+        this.setButtonState("sheet-ping", true, "Testando...");
+        try {
+          const response = await this.fetchWithTimeout(`${endpoint}?action=ping`);
+          if (response.ok) {
+            UI.toast("Endpoint respondeu.");
+          } else {
+            const details = await this.readError(response);
+            UI.toast(`Falha ao testar conexão (${response.status}).${details}`);
+          }
+        } catch (error) {
+          UI.toast(error.name === "AbortError" ? "Tempo limite ao testar conexão." : "Erro de conexão com o Google Sheets.");
+        } finally {
+          this.setButtonState("sheet-ping", false);
         }
       },
     };

@@ -175,17 +175,6 @@ Ao iniciar pela primeira vez são criados automaticamente:
 * 5 clientes de exemplo
 * Usuários: admin, gerente, operador (senha padrão: 1234)
 
-## Checklist manual de testes (PDV)
-
-- [ ] Buscar produto por nome ou código de barras
-- [ ] Adicionar item ao carrinho
-- [ ] Testar desconto por item
-- [ ] Aplicar desconto geral e taxa
-- [ ] Finalizar venda em dinheiro e conferir troco
-- [ ] Imprimir cupom 80mm
-- [ ] Confirmar baixa de estoque
-- [ ] Verificar lançamento no Caixa
-
 ## Observações
 
 * Sistema funciona offline-first.

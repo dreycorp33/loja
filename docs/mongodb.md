@@ -50,7 +50,23 @@ Sugestão de endpoints REST:
 2. Crie um script que leia esse JSON e grave no MongoDB.
 3. Valide os registros no Atlas.
 
-## 9) Testes
+## 9) Integração Python (pymongo)
+1. Instale o driver:
+   - `python -m pip install "pymongo[srv]"`
+2. Use a string de conexão (recomendo mover para variável de ambiente):
+   - `mongodb+srv://loja1pro:Dr397210@loja1.vx5hufu.mongodb.net/?appName=loja1`
+3. Exemplo rápido:
+   ```python
+   from pymongo import MongoClient
+
+   uri = "mongodb+srv://loja1pro:Dr397210@loja1.vx5hufu.mongodb.net/?appName=loja1"
+   client = MongoClient(uri)
+   db = client["loja1"]
+   print(db.list_collection_names())
+   ```
+4. **Segurança:** troque a senha exposta acima após validar a integração e não comite credenciais em repositórios.
+
+## 10) Testes
 1. Teste as rotas com Postman/Insomnia.
 2. Verifique se o front-end carrega e grava dados corretamente.
 
